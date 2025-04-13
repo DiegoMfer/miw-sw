@@ -7,23 +7,32 @@ import {
   Button, 
   Paper,
   styled,
-  Link
+  Link,
+  Alert
 } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { login } from '../services/authService';
 
 function Login({ setIsLoggedIn }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (email && password) {
-      // Here you would normally validate with an API
-      setIsLoggedIn(true);
-      navigate('/');
-      setError('');
+      try {
+        setLoading(true);
+        await login(email, password);
+        setIsLoggedIn(true);
+        navigate('/');
+      } catch (err) {
+        setError('Invalid email or password');
+      } finally {
+        setLoading(false);
+      }
     } else {
       setError('Please enter both email and password.');
     }
@@ -46,9 +55,9 @@ function Login({ setIsLoggedIn }) {
         <LoginPaper>
           <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
             {error && (
-              <Typography color="error" align="center" sx={{ mb: 2 }}>
+              <Alert severity="error" sx={{ mb: 2 }}>
                 {error}
-              </Typography>
+              </Alert>
             )}
             
             <TextField
@@ -82,9 +91,16 @@ function Login({ setIsLoggedIn }) {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              disabled={loading}
             >
-              Sign In
+              {loading ? 'Signing in...' : 'Sign In'}
             </LoginButton>
+            
+            <Box sx={{ mt: 2, textAlign: 'center' }}>
+              <Link component={RouterLink} to="/register" variant="body2">
+                Don't have an account? Sign up
+              </Link>
+            </Box>
           </Box>
         </LoginPaper>
       </Box>

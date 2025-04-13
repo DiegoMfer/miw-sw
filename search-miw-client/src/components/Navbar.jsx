@@ -11,6 +11,8 @@ import HistoryIcon from '@mui/icons-material/History';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
 import HomeIcon from '@mui/icons-material/Home';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import LoginIcon from '@mui/icons-material/Login';
 
 function Navbar({ isLoggedIn, handleLogout }) {
   return (
@@ -47,9 +49,14 @@ function Navbar({ isLoggedIn, handleLogout }) {
             </NavButton>
           </>
         ) : (
-          <NavButton component={RouterLink} to="/login">
-            Login
-          </NavButton>
+          <>
+            <NavButton component={RouterLink} to="/login" startIcon={<LoginIcon />}>
+              Login
+            </NavButton>
+            <NavButton component={RouterLink} to="/register" startIcon={<PersonAddIcon />}>
+              Register
+            </NavButton>
+          </>
         )}
       </Toolbar>
     </StyledAppBar>

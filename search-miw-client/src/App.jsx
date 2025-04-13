@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   TextField,
   Button,
@@ -13,13 +13,20 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import SearchIcon from '@mui/icons-material/Search';
 import './App.css';
 import Login from './components/Login';
+import Register from './components/Register';
 import Navbar from './components/Navbar';
 import History from './components/History';
+import { isAuthenticated } from './services/authService';
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
   const [query, setQuery] = useState('');
   const [searchHistory, setSearchHistory] = useState([]);
+  
+  useEffect(() => {
+    // Check authentication status on component mount
+    setIsLoggedIn(isAuthenticated());
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -62,6 +69,11 @@ function App() {
             isLoggedIn ? 
             <Navigate to="/" /> : 
             <Login setIsLoggedIn={setIsLoggedIn} />
+          } />
+          <Route path="/register" element={
+            isLoggedIn ? 
+            <Navigate to="/" /> : 
+            <Register setIsLoggedIn={setIsLoggedIn} />
           } />
           <Route path="/profile" element={
             isLoggedIn ? 

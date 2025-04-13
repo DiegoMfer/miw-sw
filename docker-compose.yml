@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # Gateway Service
+  gateway:
+    build: ./gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - AUTH_SERVICE_URL=http://auth:8081
+      - JWT_SECRET=thisIsASharedSecretKeyForJWTValidation
+    depends_on:
+      - auth
+    networks:
+      - search-miw-network
+
+  # Authentication Service
+  auth:
+    build: ./auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      - JWT_SECRET=thisIsASharedSecretKeyForJWTValidation
+    networks:
+      - search-miw-network
+
+  # Frontend
+  frontend:
+    build: ./search-miw-client
+    ports:
+      - "5173:80"
+    environment:
+      - VITE_API_URL=http://localhost:8080
+    depends_on:
+      - gateway
+    networks:
+      - search-miw-network
+
+networks:
+  search-miw-network:
+    driver: bridge
