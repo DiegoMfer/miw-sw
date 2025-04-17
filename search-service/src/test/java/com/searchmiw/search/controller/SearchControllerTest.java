@@ -3,7 +3,6 @@ package com.searchmiw.search.controller;
 import com.searchmiw.search.model.SearchResult;
 import com.searchmiw.search.model.SearchResultItem;
 import com.searchmiw.search.service.SearchService;
-import com.searchmiw.search.util.JwtUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -15,7 +14,6 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -29,14 +27,10 @@ class SearchControllerTest {
     @MockBean
     private SearchService searchService;
 
-    @MockBean
-    private JwtUtil jwtUtil;
-
     @Test
-    void testSearchWithValidToken() throws Exception {
+    void testSearch() throws Exception {
         // Prepare test data
-        String query = "test";
-        String token = "valid-token";
+        String query = "Albert Einstein";
         
         SearchResult mockResult = new SearchResult();
         mockResult.setQuery(query);
@@ -44,59 +38,29 @@ class SearchControllerTest {
         mockResult.setSearchTime(150);
         
         SearchResultItem item1 = new SearchResultItem();
-        item1.setId("Q1");
-        item1.setTitle("Test Entity 1");
-        item1.setDescription("Description 1");
-        item1.setUrl("https://www.wikidata.org/wiki/Q1");
+        item1.setId("Q937");
+        item1.setTitle("Albert Einstein");
+        item1.setDescription("Physicist");
+        item1.setUrl("https://www.wikidata.org/wiki/Q937");
         
-        SearchResultItem item2 = new SearchResultItem();
-        item2.setId("Q2");
-        item2.setTitle("Test Entity 2");
-        item2.setDescription("Description 2");
-        item2.setUrl("https://www.wikidata.org/wiki/Q2");
-        
-        mockResult.setResults(Arrays.asList(item1, item2));
+        mockResult.setResults(Arrays.asList(item1));
         
         // Configure mocks
-        when(jwtUtil.validateToken(token)).thenReturn(true);
         when(searchService.search(query, "en")).thenReturn(mockResult);
         
         // Execute and verify
         mockMvc.perform(get("/api/search")
                 .param("query", query)
-                .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.query", is(query)))
-                .andExpect(jsonPath("$.totalResults", is(2)))
-                .andExpect(jsonPath("$.results", hasSize(2)))
-                .andExpect(jsonPath("$.results[0].id", is("Q1")))
-                .andExpect(jsonPath("$.results[0].title", is("Test Entity 1")))
-                .andExpect(jsonPath("$.results[1].id", is("Q2")));
-    }
-
-    @Test
-    void testSearchWithInvalidToken() throws Exception {
-        // Prepare test data
-        String query = "test";
-        String token = "invalid-token";
-        
-        // Configure mocks
-        when(jwtUtil.validateToken(token)).thenReturn(false);
-        
-        // Execute and verify
-        mockMvc.perform(get("/api/search")
-                .param("query", query)
-                .header("Authorization", "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized());
+                .andExpect(jsonPath("$.results", not(empty())));
     }
     
     @Test
     void testSearchWithEmptyResults() throws Exception {
         // Prepare test data
         String query = "empty";
-        String token = "valid-token";
         
         SearchResult emptyResult = new SearchResult();
         emptyResult.setQuery(query);
@@ -105,17 +69,56 @@ class SearchControllerTest {
         emptyResult.setResults(Collections.emptyList());
         
         // Configure mocks
-        when(jwtUtil.validateToken(token)).thenReturn(true);
         when(searchService.search(query, "en")).thenReturn(emptyResult);
         
         // Execute and verify
         mockMvc.perform(get("/api/search")
                 .param("query", query)
-                .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.query", is(query)))
                 .andExpect(jsonPath("$.totalResults", is(0)))
                 .andExpect(jsonPath("$.results", is(empty())));
+    }
+
+    @Test
+    void testAlbertEinsteinSearch() throws Exception {
+        // Prepare test data for Albert Einstein query
+        String query = "Albert Einstein";
+        
+        SearchResult einsteinResult = new SearchResult();
+        einsteinResult.setQuery(query);
+        einsteinResult.setTotalResults(2);
+        einsteinResult.setSearchTime(150);
+        
+        SearchResultItem einstein = new SearchResultItem();
+        einstein.setId("Q937");
+        einstein.setTitle("Albert Einstein");
+        einstein.setDescription("German-born theoretical physicist; developer of the theory of relativity (1879–1955)");
+        einstein.setUrl("https://www.wikidata.org/wiki/Q937");
+        
+        SearchResultItem einsteinInstitute = new SearchResultItem();
+        einsteinInstitute.setId("Q1343246");
+        einsteinInstitute.setTitle("Albert Einstein Institute");
+        einsteinInstitute.setDescription("Research institute in Germany");
+        einsteinInstitute.setUrl("https://www.wikidata.org/wiki/Q1343246");
+        
+        einsteinResult.setResults(Arrays.asList(einstein, einsteinInstitute));
+        
+        // Configure mock
+        when(searchService.search(query, "en")).thenReturn(einsteinResult);
+        
+        // Execute and verify
+        mockMvc.perform(get("/api/search")
+                .param("query", query)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.query", is(query)))
+                .andExpect(jsonPath("$.totalResults", is(2)))
+                .andExpect(jsonPath("$.results", hasSize(2)))
+                .andExpect(jsonPath("$.results[0].id", is("Q937")))
+                .andExpect(jsonPath("$.results[0].title", is("Albert Einstein")))
+                .andExpect(jsonPath("$.results[0].description", containsString("theoretical physicist")))
+                .andExpect(jsonPath("$.results[1].title", is("Albert Einstein Institute")));
     }
 }

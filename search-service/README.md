@@ -17,14 +17,7 @@ The API documentation is available using OpenAPI/Swagger.
 
 - Entity search in Wikidata
 - Result caching
-- Optional JWT authentication
 - Multiple language support
-
-## Authentication
-
-The service supports both authenticated and unauthenticated requests:
-- For authenticated requests, provide a valid JWT token in the Authorization header
-- For unauthenticated requests, simply omit the Authorization header
 
 ## Technologies
 
@@ -32,7 +25,6 @@ The service supports both authenticated and unauthenticated requests:
 - Spring Boot 3.2.6
 - Spring WebFlux for API calls
 - Caffeine for caching
-- JWT for authentication
 
 ## Running the Service
 

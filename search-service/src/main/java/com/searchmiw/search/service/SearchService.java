@@ -5,6 +5,7 @@ import com.searchmiw.search.model.SearchResultItem;
 import com.searchmiw.search.model.WikidataResponse;
 import com.searchmiw.search.model.WikidataSearchEntity;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -21,18 +22,28 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SearchService {
 
-    private final WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
+    private WebClient webClient;
     
     @Value("${wikidata.api.url}")
     private String wikidataApiUrl;
 
+    @Autowired
     public SearchService(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.build();
+        this.webClientBuilder = webClientBuilder;
+        // Initialize lazily to avoid issues in tests
+    }
+    
+    private WebClient getWebClient() {
+        if (webClient == null) {
+            webClient = webClientBuilder.build();
+        }
+        return webClient;
     }
 
-    @Cacheable(value = "wikidata-searches", key = "#query")
+    @Cacheable(value = "wikidata-searches", key = "#query + '-' + #language")
     public SearchResult search(String query, String language) {
-        log.info("Searching Wikidata for query: {}", query);
+        log.info("Searching Wikidata for query: {} in language: {}", query, language);
         
         Instant startTime = Instant.now();
         
@@ -40,13 +51,14 @@ public class SearchService {
                 .queryParam("action", "wbsearchentities")
                 .queryParam("search", query)
                 .queryParam("language", language)
+                .queryParam("uselang", language)  // Added uselang parameter
                 .queryParam("format", "json")
                 .queryParam("limit", 10)
                 .build()
                 .toUriString();
         
         try {
-            WikidataResponse response = webClient.get()
+            WikidataResponse response = getWebClient().get()
                     .uri(url)
                     .retrieve()
                     .bodyToMono(WikidataResponse.class)
@@ -80,7 +92,7 @@ public class SearchService {
                 .id(entity.getId())
                 .title(entity.getTitle())
                 .description(entity.getDescription())
-                .url("https://www.wikidata.org/wiki/" + entity.getId())
+                .url("https://www.wikidata.org" + (entity.getUrl() != null && entity.getUrl().startsWith("/") ? entity.getUrl() : "/wiki/" + entity.getId()))
                 .build();
     }
     
