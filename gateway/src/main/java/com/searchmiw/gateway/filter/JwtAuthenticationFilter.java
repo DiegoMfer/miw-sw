@@ -5,6 +5,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -68,14 +69,15 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
                path.startsWith("/auth/register") || 
                path.equals("/") || 
                path.startsWith("/static") || 
-               path.endsWith(".ico") || 
+               path.endsWith(".ico") ||  
                path.endsWith(".js") || 
                path.endsWith(".css") || 
                path.startsWith("/graphiql") || // Allow GraphiQL access without auth
-               "OPTIONS".equals(exchange.getRequest().getMethodValue());
+               HttpMethod.OPTIONS.equals(exchange.getRequest().getMethod());
     }
 
     public static class Config {
         // Empty config class as required by AbstractGatewayFilterFactory
     }
 }
+

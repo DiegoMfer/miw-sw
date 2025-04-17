@@ -9,38 +9,79 @@ import {
   Paper,
   styled 
 } from '@mui/material';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import './App.css';
 import Login from './components/Login';
 import Register from './components/Register';
 import Navbar from './components/Navbar';
 import History from './components/History';
+import SearchResults from './components/SearchResults';
 import { isAuthenticated } from './services/authService';
+import { saveSearch, getSearchHistory, getSearchResults } from './services/graphqlService';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
   const [query, setQuery] = useState('');
   const [searchHistory, setSearchHistory] = useState([]);
+  const [searchResults, setSearchResults] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   
   useEffect(() => {
     // Check authentication status on component mount
     setIsLoggedIn(isAuthenticated());
+    
+    // Fetch search history if user is logged in
+    if (isAuthenticated()) {
+      fetchSearchHistory();
+    }
   }, []);
 
-  const handleSearch = (e) => {
+  // Fetch search history from backend
+  const fetchSearchHistory = async () => {
+    try {
+      const history = await getSearchHistory();
+      setSearchHistory(history);
+    } catch (error) {
+      console.error('Error fetching search history:', error);
+    }
+  };
+
+  // Function to update history after operations
+  const onHistoryUpdate = () => {
+    fetchSearchHistory();
+  };
+
+  const handleSearch = async (e) => {
     e.preventDefault();
     if (query.trim()) {
-      // Save search to history if logged in
-      if (isLoggedIn) {
-        setSearchHistory([
-          { query: query, timestamp: new Date().toISOString() },
-          ...searchHistory
-        ].slice(0, 10)); // Keep only the 10 most recent searches
-      }
+      setIsSearching(true);
+      setHasSearched(true);
       
-      // Here you would typically make an API call to get search results
-      alert(`You searched for: ${query}`);
+      try {
+        // Get search results
+        const results = await getSearchResults(query);
+        setSearchResults(results);
+        
+        // Save search to backend if logged in
+        if (isLoggedIn) {
+          const savedSearch = await saveSearch(query);
+          console.log('Search saved:', savedSearch);
+          // Refresh search history after saving
+          await fetchSearchHistory();
+        }
+      } catch (error) {
+        console.error('Error performing search:', error);
+        setSearchResults({ 
+          query: query, 
+          results: [], 
+          totalResults: 0, 
+          searchTime: 0 
+        });
+      } finally {
+        setIsSearching(false);
+      }
     }
   };
 
@@ -51,6 +92,8 @@ function App() {
 
   const handleLogout = () => {
     setIsLoggedIn(false);
+    setSearchResults(null);
+    setHasSearched(false);
   };
 
   return (
@@ -59,12 +102,17 @@ function App() {
         <Navbar isLoggedIn={isLoggedIn} handleLogout={handleLogout} />
 
         <Routes>
-          <Route path="/" element={<SearchPage 
-            query={query} 
-            setQuery={setQuery} 
-            handleSearch={handleSearch} 
-            handleLucky={handleLucky} 
-          />} />
+          <Route path="/" element={
+            <MainPage
+              query={query}
+              setQuery={setQuery}
+              handleSearch={handleSearch}
+              handleLucky={handleLucky}
+              searchResults={searchResults}
+              isSearching={isSearching}
+              hasSearched={hasSearched}
+            />
+          } />
           <Route path="/login" element={
             isLoggedIn ? 
             <Navigate to="/" /> : 
@@ -82,7 +130,7 @@ function App() {
           } />
           <Route path="/history" element={
             isLoggedIn ? 
-            <History searchHistory={searchHistory} /> : 
+            <History searchHistory={searchHistory} onHistoryUpdate={onHistoryUpdate} /> : 
             <Navigate to="/login" />
           } />
         </Routes>
@@ -97,22 +145,52 @@ function App() {
   );
 }
 
-function SearchPage({ query, setQuery, handleSearch, handleLucky }) {
-  return (
-    <Container maxWidth="md" sx={{ mt: 8, textAlign: 'center' }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h2" component="h1" fontWeight="bold">
-          <span style={{ color: '#4285F4' }}>S</span>
-          <span style={{ color: '#EA4335' }}>e</span>
-          <span style={{ color: '#FBBC05' }}>a</span>
-          <span style={{ color: '#4285F4' }}>r</span>
-          <span style={{ color: '#34A853' }}>c</span>
-          <span style={{ color: '#EA4335' }}>h</span>
-          <span style={{ color: '#4285F4' }}>MIW</span>
-        </Typography>
-      </Box>
+function MainPage({ 
+  query, 
+  setQuery, 
+  handleSearch, 
+  handleLucky, 
+  searchResults, 
+  isSearching, 
+  hasSearched 
+}) {
+  // Extract search param if coming from history
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('q');
+  
+  // Set query from URL parameter if available
+  useEffect(() => {
+    if (searchQuery) {
+      setQuery(searchQuery);
+      
+      // Automatically search if coming from URL
+      const searchForm = new Event('submit');
+      handleSearch(searchForm);
+    }
+  }, [searchQuery, setQuery]);
 
-      <SearchPaper component="form" onSubmit={handleSearch}>
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    handleSearch(e);
+  };
+
+  return (
+    <Container maxWidth={hasSearched ? "md" : "sm"} sx={{ mt: hasSearched ? 3 : 8 }}>
+      {!hasSearched && (
+        <Box sx={{ mb: 4, textAlign: 'center' }}>
+          <Typography variant="h2" component="h1" fontWeight="bold">
+            <span style={{ color: '#4285F4' }}>S</span>
+            <span style={{ color: '#EA4335' }}>e</span>
+            <span style={{ color: '#FBBC05' }}>a</span>
+            <span style={{ color: '#4285F4' }}>r</span>
+            <span style={{ color: '#34A853' }}>c</span>
+            <span style={{ color: '#EA4335' }}>h</span>
+            <span style={{ color: '#4285F4' }}>MIW</span>
+          </Typography>
+        </Box>
+      )}
+
+      <SearchPaper component="form" onSubmit={handleSubmit}>
         <InputAdornment position="start" sx={{ pl: 2 }}>
           <SearchIcon color="action" />
         </InputAdornment>
@@ -127,22 +205,32 @@ function SearchPage({ query, setQuery, handleSearch, handleLucky }) {
         />
       </SearchPaper>
 
-      <Box sx={{ mt: 2 }}>
-        <SearchButton 
-          variant="contained" 
-          type="submit" 
-          onClick={handleSearch}
-          sx={{ mr: 2 }}
-        >
-          Google Search
-        </SearchButton>
-        <SearchButton 
-          variant="contained" 
-          onClick={handleLucky}
-        >
-          I'm Feeling Lucky
-        </SearchButton>
-      </Box>
+      {!hasSearched && (
+        <Box sx={{ mt: 2, textAlign: 'center' }}>
+          <SearchButton 
+            variant="contained" 
+            type="submit" 
+            onClick={handleSearch}
+            sx={{ mr: 2 }}
+          >
+            Google Search
+          </SearchButton>
+          <SearchButton 
+            variant="contained" 
+            onClick={handleLucky}
+          >
+            I'm Feeling Lucky
+          </SearchButton>
+        </Box>
+      )}
+
+      {hasSearched && (
+        <SearchResults 
+          results={searchResults} 
+          loading={isSearching}
+          query={query}
+        />
+      )}
     </Container>
   );
 }

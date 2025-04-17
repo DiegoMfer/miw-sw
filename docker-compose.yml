@@ -38,9 +38,11 @@ services:
       - JWT_SECRET=thisIsASharedSecretKeyForJWTValidation
       - HISTORY_SERVICE_URL=http://history:8082
       - USER_SERVICE_URL=http://user:8084
+      - SEARCH_SERVICE_URL=http://search-service:8084
     depends_on:
       - history
       - user
+      - search-service
     networks:
       - search-miw-network
 
@@ -113,6 +115,16 @@ services:
       - POSTGRES_DB=userdb
     volumes:
       - postgres-user-data:/var/lib/postgresql/data
+    networks:
+      - search-miw-network
+
+  # Search Service
+  search-service:
+    build: ./search-service
+    ports:
+      - "8085:8084"  # Changed from 8084:8084 to use 8085 on host and 8084 in container
+    environment:
+      - SPRING_APPLICATION_NAME=search-service
     networks:
       - search-miw-network
 

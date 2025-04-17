@@ -1,8 +1,10 @@
 package com.searchmiw.dataaggregator.controller;
 
 import com.searchmiw.dataaggregator.model.SearchHistory;
+import com.searchmiw.dataaggregator.model.SearchResult;
 import com.searchmiw.dataaggregator.model.User;
 import com.searchmiw.dataaggregator.service.HistoryService;
+import com.searchmiw.dataaggregator.service.SearchService;
 import com.searchmiw.dataaggregator.service.UserService;
 import com.searchmiw.dataaggregator.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ public class GraphQLController {
 
     private final HistoryService historyService;
     private final UserService userService;
+    private final SearchService searchService;
     private final JwtUtil jwtUtil;
 
     @QueryMapping
@@ -43,6 +46,12 @@ public class GraphQLController {
         String token = extractToken();
         return userService.getUserById(token, id)
                 .block();
+    }
+    
+    @QueryMapping
+    public SearchResult search(@Argument String query, @Argument String language) {
+        String token = extractToken();
+        return searchService.search(token, query, language).block();
     }
 
     @MutationMapping
@@ -88,6 +97,6 @@ public class GraphQLController {
                 return authHeader.substring(7);
             }
         }
-        throw new RuntimeException("No authorization token found");
+        return "";
     }
 }

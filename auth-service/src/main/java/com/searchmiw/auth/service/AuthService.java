@@ -93,9 +93,10 @@ public class AuthService {
                 .bodyValue(userRequest)
                 .retrieve()
                 .onStatus(
-                    HttpStatus::isError, 
+                    // Change this line from HttpStatus::isError to a lambda expression
+                    status -> status.is4xxClientError() || status.is5xxServerError(),
                     response -> response.bodyToMono(String.class)
-                        .flatMap(errorBody -> Mono.error(new ResponseStatusException(response.statusCode(), errorBody)))
+                        .flatMap(error -> Mono.error(new RuntimeException("Error creating user: " + error)))
                 )
                 .bodyToMono(UserServiceAuthResponse.class)
                 .block();

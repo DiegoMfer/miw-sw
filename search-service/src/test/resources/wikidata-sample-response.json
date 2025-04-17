@@ -1,0 +1,30 @@
+{
+  "searchinfo": {
+    "search": "example"
+  },
+  "search": [
+    {
+      "id": "Q1",
+      "title": "Example Entity",
+      "description": "This is a sample entity for testing",
+      "url": "//www.wikidata.org/wiki/Q1",
+      "match": {
+        "type": "label",
+        "language": "en",
+        "text": "Example"
+      }
+    },
+    {
+      "id": "Q2",
+      "title": "Second Example",
+      "description": "Another sample entity for testing",
+      "url": "//www.wikidata.org/wiki/Q2",
+      "match": {
+        "type": "label",
+        "language": "en",
+        "text": "Example"
+      }
+    }
+  ],
+  "success": 1
+}
