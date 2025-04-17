@@ -8,9 +8,13 @@ services:
       - "8080:8080"
     environment:
       - AUTH_SERVICE_URL=http://auth:8081
+      - DATA_AGGREGATOR_URL=http://data-aggregator:8083
+      - USER_SERVICE_URL=http://user:8084
       - JWT_SECRET=thisIsASharedSecretKeyForJWTValidation
     depends_on:
       - auth
+      - data-aggregator
+      - user
     networks:
       - search-miw-network
 
@@ -21,6 +25,54 @@ services:
       - "8081:8081"
     environment:
       - JWT_SECRET=thisIsASharedSecretKeyForJWTValidation
+      - USER_SERVICE_URL=http://user:8084
+    networks:
+      - search-miw-network
+
+  # Data Aggregator Service (GraphQL API)
+  data-aggregator:
+    build: ./data-aggregator
+    ports:
+      - "8083:8083"
+    environment:
+      - JWT_SECRET=thisIsASharedSecretKeyForJWTValidation
+      - HISTORY_SERVICE_URL=http://history:8082
+      - USER_SERVICE_URL=http://user:8084
+    depends_on:
+      - history
+      - user
+    networks:
+      - search-miw-network
+
+  # History Service
+  history:
+    build: ./history-service
+    ports:
+      - "8082:8082"
+    environment:
+      - JWT_SECRET=thisIsASharedSecretKeyForJWTValidation
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/historydb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+    depends_on:
+      - postgres
+    networks:
+      - search-miw-network
+
+  # User Service
+  user:
+    build: ./user-service
+    ports:
+      - "8084:8084"
+    environment:
+      - JWT_SECRET=thisIsASharedSecretKeyForJWTValidation
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-user:5432/userdb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+    depends_on:
+      - postgres-user
     networks:
       - search-miw-network
 
@@ -36,6 +88,40 @@ services:
     networks:
       - search-miw-network
 
+  # PostgreSQL Database for History Service
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5433:5432"  # Changed from 5432:5432 to use port 5433 on the host
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=historydb
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - search-miw-network
+
+  # PostgreSQL Database for User Service
+  postgres-user:
+    image: postgres:15-alpine
+    ports:
+      - "5434:5432"  # Using port 5434 on host to avoid conflicts
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=userdb
+    volumes:
+      - postgres-user-data:/var/lib/postgresql/data
+    networks:
+      - search-miw-network
+
 networks:
   search-miw-network:
     driver: bridge
+
+volumes:
+  postgres-data:
+    # This creates a named volume for PostgreSQL data persistence
+  postgres-user-data:
+    # This creates a named volume for User PostgreSQL data persistence

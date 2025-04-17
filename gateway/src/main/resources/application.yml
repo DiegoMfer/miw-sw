@@ -16,6 +16,24 @@ spring:
             - DedupeResponseHeader=Access-Control-Allow-Origin, RETAIN_FIRST
             - DedupeResponseHeader=Access-Control-Allow-Credentials, RETAIN_FIRST
             
+        # Data Aggregator GraphQL API
+        - id: data-aggregator-graphql
+          uri: ${DATA_AGGREGATOR_URL:http://data-aggregator:8083}
+          predicates:
+            - Path=/graphql/**
+          filters:
+            - StripPrefix=0
+            - DedupeResponseHeader=Access-Control-Allow-Origin, RETAIN_FIRST
+            - DedupeResponseHeader=Access-Control-Allow-Credentials, RETAIN_FIRST
+            
+        # Data Aggregator GraphiQL interface (for development)
+        - id: data-aggregator-graphiql
+          uri: ${DATA_AGGREGATOR_URL:http://data-aggregator:8083}
+          predicates:
+            - Path=/graphiql
+          filters:
+            - StripPrefix=0
+            
         # Frontend redirect for root path
         - id: root-redirect
           uri: ${FRONTEND_URL:http://frontend:80}

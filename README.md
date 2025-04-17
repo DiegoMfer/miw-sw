@@ -1,16 +1,56 @@
-# SearchMIW Project
+# SearchMIW Microservices Architecture
 
-This project consists of a microservice architecture with a gateway service, auth service, and a React frontend.
+This project implements a microservices architecture for the SearchMIW application.
 
-## Getting Started
+## Services
 
-### Running the Application
+- **Gateway Service**: Entry point for all client requests, handles routing and authentication
+- **Auth Service**: Handles user authentication and JWT token generation
+- **User Service**: Manages user profiles, credentials, and user metadata
+- **Data Aggregator**: GraphQL API that aggregates data from multiple services
+- **History Service**: Stores and manages user search history
 
-Start all services using Docker Compose:
+## Integration Between Auth Service and User Service
 
-```bash
+The Auth Service and User Service work together to provide complete user management functionality:
+
+1. **Auth Service** focuses on:
+   - JWT token generation and validation
+   - Authentication orchestration
+
+2. **User Service** focuses on:
+   - User data storage and management
+   - User profile operations
+   - Password encryption and validation
+
+### Authentication Flow
+
+1. User submits login credentials to `/auth/login`
+2. Gateway forwards request to Auth Service
+3. Auth Service forwards credentials to User Service
+4. User Service verifies credentials and returns user profile
+5. Auth Service generates JWT token based on user profile
+6. Token is returned to client
+
+### Registration Flow
+
+1. User submits registration info to `/auth/register`
+2. Gateway forwards request to Auth Service
+3. Auth Service checks with User Service if email already exists
+4. Auth Service sends user data to User Service for creation
+5. User Service creates user record and returns profile
+6. Auth Service generates JWT token based on new user profile
+7. Token is returned to client
+
+## Running the Services
+
+Use Docker Compose to start all services:
+
+```
 docker-compose up -d
 ```
+
+The application will be available at http://localhost:8080
 
 ### Accessing the Application
 
