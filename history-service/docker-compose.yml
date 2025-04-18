@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  history-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: history-service
+    depends_on:
+      - history-db
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - MYSQL_HOST=history-db
+      - MYSQL_PORT=3306
+      - MYSQL_DB=history_db
+      - MYSQL_USER=history_user
+      - MYSQL_PASSWORD=history_password
+    ports:
+      - "8085:8085"
+    networks:
+      - history-network
+
+  history-db:
+    image: mysql:8.0
+    container_name: history-db
+    environment:
+      - MYSQL_DATABASE=history_db
+      - MYSQL_USER=history_user
+      - MYSQL_PASSWORD=history_password
+      - MYSQL_ROOT_PASSWORD=root_password
+    volumes:
+      - history-db-data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - history-network
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+networks:
+  history-network:
+    driver: bridge
+
+volumes:
+  history-db-data:
