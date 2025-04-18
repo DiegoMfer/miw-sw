@@ -7,7 +7,8 @@ services:
       dockerfile: Dockerfile
     container_name: history-service
     depends_on:
-      - history-db
+      history-db:
+        condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - MYSQL_HOST=history-db
@@ -15,6 +16,7 @@ services:
       - MYSQL_DB=history_db
       - MYSQL_USER=history_user
       - MYSQL_PASSWORD=history_password
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
     ports:
       - "8085:8085"
     networks:
@@ -35,6 +37,12 @@ services:
     networks:
       - history-network
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "history_user", "--password=history_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 networks:
   history-network:

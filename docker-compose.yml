@@ -11,6 +11,52 @@ services:
     networks:
       - search-miw-network
 
+  # History Service
+  history-service:
+    build: ./history-service
+    container_name: history-service
+    depends_on:
+      history-db:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - MYSQL_HOST=history-db
+      - MYSQL_PORT=3306
+      - MYSQL_DB=history_db
+      - MYSQL_USER=history_user
+      - MYSQL_PASSWORD=history_password
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+    ports:
+      - "8085:8085"
+    networks:
+      - search-miw-network
+
+  # History Database
+  history-db:
+    image: mysql:8.0
+    container_name: history-db
+    environment:
+      - MYSQL_DATABASE=history_db
+      - MYSQL_USER=history_user
+      - MYSQL_PASSWORD=history_password
+      - MYSQL_ROOT_PASSWORD=root_password
+    volumes:
+      - history-db-data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - search-miw-network
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "history_user", "--password=history_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
 networks:
   search-miw-network:
     driver: bridge
+
+volumes:
+  history-db-data:
