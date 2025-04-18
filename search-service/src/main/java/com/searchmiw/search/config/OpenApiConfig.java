@@ -27,5 +27,20 @@ import io.swagger.v3.oas.models.OpenAPI;
     )
 )
 public class OpenApiConfig {
-
+    
+    @Bean
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+                .info(new io.swagger.v3.oas.models.info.Info()
+                        .title("Search Service API")
+                        .description("API for searching entities using Wikidata")
+                        .version("v1.0.0")
+                        .contact(new io.swagger.v3.oas.models.info.Contact()
+                                .name("SearchMIW Team")
+                                .url("https://github.com/DiegoMfer/miw-sw")
+                                .email("contact@searchmiw.com"))
+                        .license(new io.swagger.v3.oas.models.info.License()
+                                .name("MIT License")
+                                .url("https://opensource.org/licenses/MIT")));
+    }
 }

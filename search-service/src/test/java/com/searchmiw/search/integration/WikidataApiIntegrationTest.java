@@ -21,7 +21,7 @@ public class WikidataApiIntegrationTest {
     void testRealAlbertEinsteinApiCall() {
         // Skip this test by default since it makes a real API call
         // Set this to true to run the real API test
-        boolean runLiveTest = false;
+        boolean runLiveTest = true;
         
         if (!runLiveTest) {
             System.out.println("Skipping live Wikidata API test");
