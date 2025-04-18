@@ -77,6 +77,20 @@
                     </excludes>
                 </configuration>
             </plugin>
+            <!-- Configure the Surefire Plugin for unit tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                    </includes>
+                    <systemPropertyVariables>
+                        <!-- Allow integration tests to run but mock external services -->
+                        <runLiveTests>false</runLiveTests>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>

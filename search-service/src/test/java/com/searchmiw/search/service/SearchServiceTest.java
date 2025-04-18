@@ -55,7 +55,7 @@ class SearchServiceTest {
         ReflectionTestUtils.setField(searchService, "wikidataApiUrl", "https://www.wikidata.org/w/api.php");
     }
 
-    
+
     
     @Test
     void testSearchWithEmptyResults() {
