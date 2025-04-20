@@ -97,6 +97,23 @@ services:
       retries: 5
       start_period: 30s
 
+  # Data Aggregator Service
+  data-aggregator-service:
+    build: ./data-aggregator-service
+    container_name: data-aggregator-service
+    depends_on:
+      - search-service
+      - history-service
+      - user-service
+    environment:
+      - SERVICE_USER_URL=http://user-service:8086
+      - SERVICE_SEARCH_URL=http://search-service:8084
+      - SERVICE_HISTORY_URL=http://history-service:8085
+    ports:
+      - "8087:8087"
+    networks:
+      - search-miw-network
+
 networks:
   search-miw-network:
     driver: bridge

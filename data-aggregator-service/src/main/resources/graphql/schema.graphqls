@@ -1,0 +1,91 @@
+type Query {
+    # User queries
+    users: [User]
+    user(id: ID!): User
+    userByEmail(email: String!): User
+    
+    # Search queries
+    search(query: String!, language: String = "en"): SearchResult
+    
+    # History queries
+    historyEntries: [HistoryEntry]
+    historyEntry(id: ID!): HistoryEntry
+    historyEntriesByUser(userId: ID!): [HistoryEntry]
+}
+
+type Mutation {
+    # User mutations
+    createUser(input: CreateUserInput!): UserMutationResponse!
+    updateUser(id: ID!, input: UpdateUserInput!): UserMutationResponse!
+    deleteUser(id: ID!): MutationResponse!
+    
+    # History mutations
+    saveSearch(userId: ID!, query: String!): HistoryEntryMutationResponse!
+    deleteSearch(id: ID!): MutationResponse!
+    clearHistory(userId: ID!): MutationResponse!
+}
+
+type User {
+    id: ID!
+    username: String!
+    email: String!
+    name: String
+    createdAt: String
+    updatedAt: String
+    searchHistory: [HistoryEntry]
+}
+
+type SearchResult {
+    query: String!
+    results: [SearchResultItem]!
+    totalResults: Int!
+    searchTime: Int!
+}
+
+type SearchResultItem {
+    id: ID!
+    title: String!
+    description: String
+    url: String!
+}
+
+type HistoryEntry {
+    id: ID!
+    userId: ID!
+    query: String!
+    timestamp: String!
+    user: User
+    searchResult: SearchResult
+}
+
+input CreateUserInput {
+    username: String!
+    email: String!
+    password: String!
+    name: String
+}
+
+input UpdateUserInput {
+    username: String
+    email: String
+    name: String
+    password: String
+}
+
+# Response types for mutations
+type UserMutationResponse {
+    success: Boolean!
+    message: String
+    user: User
+}
+
+type HistoryEntryMutationResponse {
+    success: Boolean!
+    message: String
+    historyEntry: HistoryEntry
+}
+
+type MutationResponse {
+    success: Boolean!
+    message: String
+}
