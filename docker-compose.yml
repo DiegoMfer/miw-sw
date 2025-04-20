@@ -53,6 +53,49 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+      
+  # User Service
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    depends_on:
+      user-db:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - MYSQL_HOST=user-db
+      - MYSQL_PORT=3306
+      - MYSQL_DB=user_db
+      - MYSQL_USER=user_service
+      - MYSQL_PASSWORD=user_password
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+    ports:
+      - "8086:8086"
+    networks:
+      - search-miw-network
+
+  # User Database
+  user-db:
+    image: mysql:8.0
+    container_name: user-db
+    environment:
+      - MYSQL_DATABASE=user_db
+      - MYSQL_USER=user_service
+      - MYSQL_PASSWORD=user_password
+      - MYSQL_ROOT_PASSWORD=root_password
+    volumes:
+      - user-db-data:/var/lib/mysql
+    ports:
+      - "3308:3306"
+    networks:
+      - search-miw-network
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "user_service", "--password=user_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 networks:
   search-miw-network:
@@ -60,3 +103,4 @@ networks:
 
 volumes:
   history-db-data:
+  user-db-data:
