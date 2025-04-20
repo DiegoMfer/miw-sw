@@ -1,0 +1,24 @@
+type Query {
+    dataById(id: ID!): DataItem
+    allData: [DataItem]
+}
+
+type Mutation {
+    createData(input: DataInput): DataItem
+    updateData(id: ID!, input: DataInput): DataItem
+    deleteData(id: ID!): Boolean
+}
+
+type DataItem {
+    id: ID!
+    name: String
+    value: String
+    timestamp: String
+    source: String
+}
+
+input DataInput {
+    name: String!
+    value: String!
+    source: String
+}
