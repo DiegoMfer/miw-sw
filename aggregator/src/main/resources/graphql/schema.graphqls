@@ -1,0 +1,31 @@
+type User {
+    id: ID!
+    name: String!
+    email: String!
+    createdAt: String
+    updatedAt: String
+}
+
+type HistoryEntry {
+    id: ID!
+    userId: ID!
+    query: String!
+    timestamp: String!
+}
+
+type Query {
+    # Get all users
+    users: [User]
+    
+    # Get a specific user by ID
+    userById(id: ID!): User
+    
+    # Get all history entries
+    historyEntries: [HistoryEntry]
+    
+    # Get a specific history entry by ID
+    historyEntry(id: ID!): HistoryEntry
+    
+    # Get history entries for a specific user
+    historyEntriesByUser(userId: ID!): [HistoryEntry]
+}
