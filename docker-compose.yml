@@ -97,6 +97,19 @@ services:
       retries: 5
       start_period: 30s
 
+  # Aggregator Service
+  aggregator:
+    build: ./aggregator
+    container_name: aggregator
+    depends_on:
+      - user-service
+      - history-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    ports:
+      - "8087:8087"
+    networks:
+      - search-miw-network
   
 networks:
   search-miw-network:
