@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.searchmiw</groupId>
-	<artifactId>agregator</artifactId>
+	<artifactId>aggregator</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>agregator</name>
+	<name>aggregator</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
 	<licenses>
@@ -86,7 +86,7 @@
 							<schemaPaths>
 								<param>src/main/resources/graphql-client</param>
 							</schemaPaths>
-							<packageName>com.searchmiw.agregator.codegen</packageName>
+							<packageName>com.searchmiw.aggregator.codegen</packageName>
 							<addGeneratedAnnotation>true</addGeneratedAnnotation>
 							<disableDatesInGeneratedAnnotation>true</disableDatesInGeneratedAnnotation>
 						</configuration>

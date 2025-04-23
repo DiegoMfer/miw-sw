@@ -1,13 +1,13 @@
-package com.searchmiw.agregator;
+package com.searchmiw.aggregator;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class AgregatorApplication {
+public class AggregatorApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(AgregatorApplication.class, args);
+		SpringApplication.run(AggregatorApplication.class, args);
 	}
 
 }
