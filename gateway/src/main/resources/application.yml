@@ -28,6 +28,14 @@ spring:
           filters:
             - StripPrefix=1
             
+        # History Service route
+        - id: history-service
+          uri: http://history-service:8085
+          predicates:
+            - Path=/api/history/**
+          filters:
+            - StripPrefix=0
+            
         # Search Service API docs
         - id: search-service-docs
           uri: http://search-service:8084

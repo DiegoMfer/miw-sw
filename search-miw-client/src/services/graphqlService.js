@@ -1,6 +1,7 @@
 import { getToken } from './authService';
 
 const API_URL = import.meta.env.VITE_API_URL;
+const ENABLE_LOGS = import.meta.env.VITE_ENABLE_API_LOGS === 'true';
 
 // GraphQL endpoint
 const graphqlEndpoint = `${API_URL}/graphql`;
@@ -8,6 +9,10 @@ const graphqlEndpoint = `${API_URL}/graphql`;
 // Helper function to make GraphQL requests
 async function executeGraphQL(query, variables = {}) {
   const token = getToken();
+  
+  if (ENABLE_LOGS) {
+    console.log(`GraphQL Request to ${graphqlEndpoint}`, { query, variables });
+  }
   
   const response = await fetch(graphqlEndpoint, {
     method: 'POST',
@@ -26,6 +31,10 @@ async function executeGraphQL(query, variables = {}) {
   }
 
   const data = await response.json();
+  
+  if (ENABLE_LOGS) {
+    console.log('GraphQL Response:', data);
+  }
   
   if (data.errors) {
     throw new Error(data.errors[0].message);

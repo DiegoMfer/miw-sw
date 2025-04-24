@@ -1,10 +1,15 @@
 // Auth service for handling login/logout and token management
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const ENABLE_LOGS = import.meta.env.VITE_ENABLE_API_LOGS === 'true';
 
 // Login function - authenticates user and stores token
 const login = async (email, password) => {
   try {
+    if (ENABLE_LOGS) {
+      console.log(`Sending login request to ${API_URL}/auth/login`);
+    }
+    
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {
@@ -25,6 +30,11 @@ const login = async (email, password) => {
     
     // Store token in localStorage
     localStorage.setItem('token', data.token);
+    
+    if (ENABLE_LOGS) {
+      console.log('Login successful');
+    }
+    
     return data;
   } catch (error) {
     console.error('Login error:', error);
@@ -35,6 +45,10 @@ const login = async (email, password) => {
 // Register function - creates new user account
 const register = async (email, password, name) => {
   try {
+    if (ENABLE_LOGS) {
+      console.log(`Sending registration request to ${API_URL}/auth/register`);
+    }
+    
     const response = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: {
@@ -55,6 +69,11 @@ const register = async (email, password, name) => {
     
     // Store token in localStorage after successful registration
     localStorage.setItem('token', data.token);
+    
+    if (ENABLE_LOGS) {
+      console.log('Registration successful');
+    }
+    
     return data;
   } catch (error) {
     console.error('Registration error:', error);
