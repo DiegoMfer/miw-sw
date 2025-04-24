@@ -110,7 +110,49 @@ services:
       - "8087:8087"
     networks:
       - search-miw-network
-  
+
+  # Gateway Service
+  gateway:
+    build: ./gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - JWT_SECRET=yourSuperSecretKeyThatShouldBeAtLeast256BitsInProduction
+      - SPRING_PROFILES_ACTIVE=prod
+    depends_on:
+      - auth-service
+      - user-service
+      - search-service
+      - history-service
+      - aggregator
+    networks:
+      - search-miw-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # Auth Service
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      - JWT_SECRET=yourSuperSecretKeyThatShouldBeAtLeast256BitsInProduction
+      - SPRING_PROFILES_ACTIVE=prod
+    networks:
+      - search-miw-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
 networks:
   search-miw-network:
     driver: bridge

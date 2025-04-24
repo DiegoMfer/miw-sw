@@ -1,0 +1,12 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: auth-service
+
+jwt:
+  secret: ${JWT_SECRET:veryLongAndSecureSecretKeyForJwtSigningThatShouldBeAtLeast256BitsLong}
+  expiration: 86400000  # 24 hours in milliseconds
+  issuer: auth-service
+  audience: miw-api-clients

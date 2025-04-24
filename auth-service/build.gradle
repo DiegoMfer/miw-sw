@@ -1,0 +1,6 @@
+// Add to your dependencies block
+dependencies {
+    // Other dependencies...
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    // Other dependencies...
+}
