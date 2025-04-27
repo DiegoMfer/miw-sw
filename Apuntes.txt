@@ -1,2 +1,7 @@
 Spring Cloud Contract
 Service discovery
+
+
+
+
+-search service writes to history service
