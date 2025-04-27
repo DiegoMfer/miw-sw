@@ -3,6 +3,7 @@ package com.searchmiw.user.controller;
 import com.searchmiw.user.dto.UserRequest;
 import com.searchmiw.user.dto.UserResponse;
 import com.searchmiw.user.dto.UserUpdateRequest;
+import com.searchmiw.user.dto.UserCredentialsRequest;
 import com.searchmiw.user.model.User;
 import com.searchmiw.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
@@ -93,5 +95,21 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/verify")
+    @Operation(summary = "Verify user credentials")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Credentials verified"),
+        @ApiResponse(responseCode = "401", description = "Invalid credentials")
+    })
+    public ResponseEntity<Boolean> verifyCredentials(@Valid @RequestBody UserCredentialsRequest request) {
+        Optional<User> userOpt = userService.findByEmail(request.getEmail());
+        
+        if (userOpt.isPresent() && userService.verifyPassword(userOpt.get(), request.getPassword())) {
+            return ResponseEntity.ok(true);
+        }
+        
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);
     }
 }

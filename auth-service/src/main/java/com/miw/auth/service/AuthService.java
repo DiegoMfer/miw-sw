@@ -1,13 +1,13 @@
 package com.miw.auth.service;
 
-import com.miw.auth.dto.LoginRequest;
-import com.miw.auth.dto.LoginResponse;
-import com.miw.auth.dto.RegisterRequest;
+import com.miw.auth.client.UserServiceClient;
+import com.miw.auth.dto.*;
 import org.springframework.stereotype.Service;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Date;
 import javax.crypto.SecretKey;
@@ -20,17 +20,50 @@ public class AuthService {
     
     @Value("${jwt.expiration:86400000}")
     private long jwtExpiration;
+    
+    private final UserServiceClient userServiceClient;
+    
+    public AuthService(UserServiceClient userServiceClient) {
+        this.userServiceClient = userServiceClient;
+    }
 
     public LoginResponse login(LoginRequest request) {
-        // In a real app, you'd validate credentials against a database
-        // For now, we'll just generate a token
-        return new LoginResponse(generateToken(request.getUsername()), request.getUsername());
+        // Verify credentials with user-service
+        UserCredentials credentials = new UserCredentials(request.getUsername(), request.getPassword());
+        
+        if (!userServiceClient.verifyCredentials(credentials)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+        }
+        
+        // Get user details
+        UserDTO user = userServiceClient.getUserByEmail(request.getUsername());
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found");
+        }
+        
+        // Generate token
+        String token = generateToken(user.getEmail());
+        return new LoginResponse(token, user.getName());
     }
 
     public LoginResponse register(RegisterRequest request) {
-        // In a real app, you'd create a user in the database
-        // For now, we'll just generate a token
-        return new LoginResponse(generateToken(request.getUsername()), request.getUsername());
+        // Check if user already exists
+        UserDTO existingUser = userServiceClient.getUserByEmail(request.getEmail());
+        if (existingUser != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already in use");
+        }
+        
+        // Create new user in user-service
+        UserRegistrationDTO registrationDTO = new UserRegistrationDTO();
+        registrationDTO.setName(request.getName());
+        registrationDTO.setEmail(request.getEmail());
+        registrationDTO.setPassword(request.getPassword());
+        
+        UserDTO createdUser = userServiceClient.createUser(registrationDTO);
+        
+        // Generate token for the new user
+        String token = generateToken(createdUser.getEmail());
+        return new LoginResponse(token, createdUser.getName());
     }
 
     private String generateToken(String username) {
