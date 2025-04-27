@@ -2,11 +2,14 @@ package com.searchmiw.search.controller;
 
 import com.searchmiw.search.model.SearchResult;
 import com.searchmiw.search.model.SearchResultItem;
+import com.searchmiw.search.service.HistoryService;
 import com.searchmiw.search.service.SearchService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -14,11 +17,12 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(SearchController.class)
+// Make sure all components are imported for the test
+@WebMvcTest({SearchController.class})
 class SearchControllerTest {
 
     @Autowired
@@ -26,6 +30,9 @@ class SearchControllerTest {
 
     @MockBean
     private SearchService searchService;
+    
+    @MockBean
+    private HistoryService historyService;
 
     @Test
     void testSearch() throws Exception {
@@ -47,6 +54,7 @@ class SearchControllerTest {
         
         // Configure mocks
         when(searchService.search(query, "en")).thenReturn(mockResult);
+        doNothing().when(historyService).recordSearchHistory(any(), any());
         
         // Execute and verify
         mockMvc.perform(get("/api/search")
@@ -154,5 +162,37 @@ class SearchControllerTest {
                 .andExpect(jsonPath("$.totalResults", is(1)))
                 .andExpect(jsonPath("$.results", hasSize(1)))
                 .andExpect(jsonPath("$.results[0].id", is("Q937")));
+    }
+    
+    @Test
+    void testSearchWithUserId() throws Exception {
+        // Prepare test data
+        String query = "Albert Einstein";
+        Long userId = 12345L;
+        
+        SearchResult mockResult = new SearchResult();
+        mockResult.setQuery(query);
+        mockResult.setTotalResults(1);
+        mockResult.setSearchTime(100);
+        
+        SearchResultItem item = new SearchResultItem();
+        item.setId("Q937");
+        item.setTitle("Albert Einstein");
+        item.setDescription("German-born theoretical physicist");
+        mockResult.setResults(Arrays.asList(item));
+        
+        // Configure mocks
+        when(searchService.search(query, "en")).thenReturn(mockResult);
+        
+        // Execute and verify
+        mockMvc.perform(get("/api/search")
+                .param("query", query)
+                .param("userId", userId.toString())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.query", is(query)));
+                
+        // Verify that history was recorded
+        verify(historyService).recordSearchHistory(eq(userId), eq(query));
     }
 }

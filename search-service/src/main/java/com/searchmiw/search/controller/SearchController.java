@@ -1,6 +1,7 @@
 package com.searchmiw.search.controller;
 
 import com.searchmiw.search.model.SearchResult;
+import com.searchmiw.search.service.HistoryService;
 import com.searchmiw.search.service.SearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class SearchController {
 
     private final SearchService searchService;
+    private final HistoryService historyService;
 
     @Operation(
         summary = "Search entities in Wikidata",
@@ -49,12 +51,25 @@ public class SearchController {
                 required = false,
                 example = "en"
             )
-            @RequestParam(required = false, defaultValue = "en") String language) {
+            @RequestParam(required = false, defaultValue = "en") String language,
+            
+            @Parameter(
+                description = "User identifier for tracking searches",
+                required = false,
+                example = "12345"
+            )
+            @RequestParam(required = false) Long userId) {
         
         log.info("Received search request for query: {}", query);
         
         // Perform search
         SearchResult result = searchService.search(query, language);
+        
+        // Record search history if userId is provided
+        if (userId != null) {
+            historyService.recordSearchHistory(userId, query);
+        }
+        
         log.info("Returning search results: {} results found", 
                 result.getResults() != null ? result.getResults().size() : 0);
         return ResponseEntity.ok(result);
