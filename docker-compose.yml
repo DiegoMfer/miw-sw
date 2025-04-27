@@ -2,25 +2,27 @@ version: '3.8'
 
 services:
   # Frontend Client
-
-
+  
+  
   # Search Service
   search-service:
     build: ./search-service
+    container_name: search-service
     ports:
-      - "8084:8084"  # Changed to use the original port 8084 directly
+      - "8084:8084"
     environment:
       - SPRING_APPLICATION_NAME=search-service
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=8084
     networks:
-      - search-miw-network
+      - searchmiw-network
 
   # History Service
   history-service:
     build: ./history-service
     container_name: history-service
     depends_on:
-      history-db:
-        condition: service_healthy
+      - mysql-db
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - MYSQL_HOST=history-db
@@ -29,10 +31,11 @@ services:
       - MYSQL_USER=history_user
       - MYSQL_PASSWORD=history_password
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+      - SERVER_PORT=8085
     ports:
       - "8085:8085"
     networks:
-      - search-miw-network
+      - searchmiw-network
 
   # History Database
   history-db:
@@ -48,7 +51,7 @@ services:
     ports:
       - "3307:3306"
     networks:
-      - search-miw-network
+      - searchmiw-network
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "history_user", "--password=history_password"]
@@ -62,8 +65,7 @@ services:
     build: ./user-service
     container_name: user-service
     depends_on:
-      user-db:
-        condition: service_healthy
+      - mysql-db
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - MYSQL_HOST=user-db
@@ -72,10 +74,11 @@ services:
       - MYSQL_USER=user_service
       - MYSQL_PASSWORD=user_password
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+      - SERVER_PORT=8086
     ports:
       - "8086:8086"
     networks:
-      - search-miw-network
+      - searchmiw-network
 
   # User Database
   user-db:
@@ -91,7 +94,7 @@ services:
     ports:
       - "3308:3306"
     networks:
-      - search-miw-network
+      - searchmiw-network
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "user_service", "--password=user_password"]
@@ -112,32 +115,29 @@ services:
     ports:
       - "8087:8087"
     networks:
-      - search-miw-network
+      - searchmiw-network
 
-  
-
-  # Auth Service
-  auth-service:
-    build: ./auth-service
-    container_name: auth-service
-    ports:
-      - "8081:8081"
+  # Database
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql
     environment:
-      - JWT_SECRET=yourSuperSecretKeyThatShouldBeAtLeast256BitsInProduction
-      - SPRING_PROFILES_ACTIVE=prod
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=searchmiw
+      - MYSQL_USER=searchmiw
+      - MYSQL_PASSWORD=searchmiw
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
     networks:
-      - search-miw-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 20s
+      - searchmiw-network
 
 networks:
-  search-miw-network:
+  searchmiw-network:
     driver: bridge
 
 volumes:
   history-db-data:
   user-db-data:
+  mysql-data:
