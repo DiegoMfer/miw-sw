@@ -1,10 +1,10 @@
-package com.searchmiw.integrationtest;
+package com.searchmiw.integration_service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class IntegrationtestApplicationTests {
+class IntegrationServiceApplicationTests {
 
 	@Test
 	void contextLoads() {

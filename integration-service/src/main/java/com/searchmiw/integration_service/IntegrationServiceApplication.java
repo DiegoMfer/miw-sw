@@ -1,13 +1,13 @@
-package com.searchmiw.integrationtest;
+package com.searchmiw.integration_service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class IntegrationtestApplication {
+public class IntegrationServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(IntegrationtestApplication.class, args);
+		SpringApplication.run(IntegrationServiceApplication.class, args);
 	}
 
 }
