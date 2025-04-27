@@ -11,7 +11,6 @@ import {
   Alert
 } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { login } from '../services/authService';
 
 function Login({ setIsLoggedIn }) {
   const [email, setEmail] = useState('');
