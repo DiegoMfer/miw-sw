@@ -19,12 +19,12 @@ Each service exposes its API documentation through OpenAPI/Swagger:
 
 | Service | Local URL | Docker URL | Port | Description |
 |---------|-----------|------------|------|-------------|
-| Gateway | [Swagger UI](http://localhost:8080/webjars/swagger-ui/index.html) | http://localhost:8080/webjars/swagger-ui/index.html | 8080 | API Gateway for routing requests |
-| Search Service | [Swagger UI](http://localhost:8084/webjars/swagger-ui/index.html) | http://localhost:8084/webjars/swagger-ui/index.html | 8084 | Service for Wikidata entity search |
-| History Service | [Swagger UI](http://localhost:8085/webjars/swagger-ui/index.html) | http://localhost:8085/webjars/swagger-ui/index.html | 8085 | Service for tracking search history |
-| User Service | [Swagger UI](http://localhost:8086/webjars/swagger-ui/index.html) | http://localhost:8086/webjars/swagger-ui/index.html | 8086 | User account management service |
+| Gateway | [Swagger UI](http://localhost:8080/swagger-ui/index.html) | http://localhost:8080/swagger-ui/index.html | 8080 | API Gateway for routing requests |
+| Search Service | [Swagger UI](http://localhost:8084/swagger-ui/index.html) | http://localhost:8084/swagger-ui/index.html | 8084 | Service for Wikidata entity search |
+| History Service | [Swagger UI](http://localhost:8085/swagger-ui/index.html) | http://localhost:8085/swagger-ui/index.html | 8085 | Service for tracking search history |
+| User Service | [Swagger UI](http://localhost:8086/swagger-ui/index.html) | http://localhost:8086/swagger-ui/index.html | 8086 | User account management service |
 | Aggregator | [GraphiQL](http://localhost:8087/graphiql) | http://localhost:8087/graphiql | 8087 | GraphQL data aggregation service |
-| Auth Service | [Swagger UI](http://localhost:8088/webjars/swagger-ui/index.html) | http://localhost:8088/webjars/swagger-ui/index.html | 8088 | Authentication and authorization service |
+| Auth Service | [Swagger UI](http://localhost:8088/swagger-ui/index.html) | http://localhost:8088/swagger-ui/index.html | 8088 | Authentication and authorization service |
 
 **Note:** For accessing services from outside the Docker network, always use `localhost` with the mapped port. The Docker service names (like `gateway:8080`) only work within the Docker network or if configured in your hosts file.
 

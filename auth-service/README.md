@@ -23,6 +23,92 @@ Authentication and authorization service for the SearchMIW platform.
 ### Health Check
 - `GET /api/health` - Service health status check
 
+## Authentication Flow
+
+### Registration Process
+1. Client sends registration information (name, email, password)
+2. Auth service validates the request
+3. Auth service calls User service to create a new user
+4. On successful creation, a JWT token is generated
+5. Response includes user details and the JWT token
+
+### Login Process
+1. Client sends email and password
+2. Auth service verifies credentials with User service
+3. On successful verification, a JWT token is generated
+4. Response includes user details and the JWT token
+
+### Token Validation
+1. Client sends a request with the Authorization header containing the JWT token
+2. Auth service verifies the token's signature and expiration
+3. Returns a boolean indicating if the token is valid
+
+## JWT Token Structure
+
+The JWT token contains:
+- **Subject**: User's email
+- **Claims**: 
+  - `userId`: Unique identifier for the user
+- **Expiration**: Token validity period (24 hours by default)
+
+## Example Requests and Responses
+
+### Register User
+```http
+POST /api/auth/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "SecurePassword123"
+}
+```
+
+Response:
+```json
+{
+  "userId": 1,
+  "name": "John Doe",
+  "email": "john@example.com",
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "message": "Registration successful"
+}
+```
+
+### Login
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "SecurePassword123"
+}
+```
+
+Response:
+```json
+{
+  "userId": 1,
+  "name": "John Doe",
+  "email": "john@example.com",
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "message": "Authentication successful"
+}
+```
+
+### Validate Token
+```http
+GET /api/auth/validate
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+```
+
+Response:
+```json
+true
+```
+
 ## Setup Instructions
 
 1. Build the service:
@@ -61,3 +147,11 @@ Authentication and authorization service for the SearchMIW platform.
 The service uses SpringDoc OpenAPI for documentation. When the service is running, you can access:
 - Swagger UI: `http://localhost:8088/webjars/swagger-ui/index.html`
 - OpenAPI specification: `http://localhost:8088/api-docs`
+
+## Integration with Other Services
+
+This service integrates with:
+
+- **User Service**: For user authentication and account creation
+- **Gateway**: For centralized API routing
+- **All protected services**: Any service requiring authentication can validate tokens with this service
