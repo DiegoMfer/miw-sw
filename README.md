@@ -13,6 +13,17 @@ The SearchMIW platform consists of the following microservices:
 - **Aggregator**: GraphQL service that aggregates data from multiple services
 - **Gateway**: API Gateway for routing requests to appropriate services
 
+## Services
+
+The platform consists of the following services:
+
+- **Gateway**: API Gateway service running on port 8080
+- **User Service**: User management service running on port 8086
+- **Search Service**: Search functionality service running on port 8084
+- **History Service**: Search history tracking service running on port 8085
+- **Auth Service**: Authentication and authorization service running on port 8088
+- **Aggregator**: Data aggregation service running on port 8087
+
 ## Service Documentation
 
 Each service exposes its API documentation through OpenAPI/Swagger:

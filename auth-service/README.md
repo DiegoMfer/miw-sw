@@ -127,6 +127,12 @@ true
    docker run -p 8088:8088 auth-service
    ```
 
+4. Run with Docker Compose:
+   ```bash
+   docker-compose up -d
+   ```
+   This will start both the auth-service and a placeholder for the user-service.
+
 ## Environment Variables
 
 | Variable | Description | Default Value |

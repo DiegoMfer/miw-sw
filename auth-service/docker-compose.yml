@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  auth-service:
+    build: .
+    container_name: auth-service
+    ports:
+      - "8088:8088"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SERVER_PORT=8088
+      - USER_SERVICE_URL=http://user-service:8086
+      - JWT_EXPIRATION=86400000
+    networks:
+      - miw-network
+    depends_on:
+      - user-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # This is a placeholder for the user service
+  # In a complete setup, you would reference the actual user service
+  user-service:
+    image: alpine
+    container_name: user-service
+    ports:
+      - "8086:8086"
+    command: echo "User service placeholder. Replace with actual user service implementation."
+    networks:
+      - miw-network
+
+networks:
+  miw-network:
+    driver: bridge
