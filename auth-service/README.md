@@ -6,7 +6,7 @@ Authentication and authorization service for the SearchMIW platform.
 
 ### Local Development
 - URL: `http://localhost:8088`
-- Swagger UI: `http://localhost:8088/webjars/swagger-ui/index.html`
+- Swagger UI: `http://localhost:8088/swagger-ui.html`
 - API Docs: `http://localhost:8088/api-docs`
 
 ### Docker Environment
@@ -151,7 +151,7 @@ true
 ## API Documentation
 
 The service uses SpringDoc OpenAPI for documentation. When the service is running, you can access:
-- Swagger UI: `http://localhost:8088/webjars/swagger-ui/index.html`
+- Swagger UI: `http://localhost:8088/swagger-ui.html`
 - OpenAPI specification: `http://localhost:8088/api-docs`
 
 ## Integration with Other Services

@@ -15,7 +15,7 @@ The Gateway service acts as a single entry point to the SearchMIW microservices 
 
 ### Local Development
 - URL: `http://localhost:8080`
-- Swagger UI: `http://localhost:8080/webjars/swagger-ui/index.html`
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
 - API Docs: `http://localhost:8080/v3/api-docs`
 
 ### Docker Environment
