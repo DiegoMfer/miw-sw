@@ -12,6 +12,7 @@ The SearchMIW platform consists of the following microservices:
 - **History Service**: Tracks and stores user search history
 - **Aggregator**: GraphQL service that aggregates data from multiple services
 - **Gateway**: API Gateway for routing requests to appropriate services
+- **Web Client**: React-based frontend application for user interaction
 
 ## Services
 
@@ -23,6 +24,7 @@ The platform consists of the following services:
 - **History Service**: Search history tracking service running on port 8085
 - **Auth Service**: Authentication and authorization service running on port 8088
 - **Aggregator**: Data aggregation service running on port 8087
+- **Web Client**: Frontend application running on port 3000
 
 ## Service Documentation
 
@@ -30,6 +32,7 @@ Each service exposes its API documentation through OpenAPI/Swagger:
 
 | Service | Local URL | Docker URL | Port | Description |
 |---------|-----------|------------|------|-------------|
+| Web Client | [Frontend](http://localhost:3000) | http://localhost:3000 | 3000 | React frontend for user interaction |
 | Gateway | [Swagger UI](http://localhost:8080/swagger-ui.html) | http://localhost:8080/swagger-ui.html | 8080 | API Gateway for routing requests |
 | Search Service | [Swagger UI](http://localhost:8084/swagger-ui/index.html) | http://localhost:8084/swagger-ui/index.html | 8084 | Service for Wikidata entity search |
 | History Service | [Swagger UI](http://localhost:8085/swagger-ui/index.html) | http://localhost:8085/swagger-ui/index.html | 8085 | Service for tracking search history |
@@ -46,6 +49,7 @@ Each service exposes its API documentation through OpenAPI/Swagger:
 - Docker and Docker Compose
 - Java 17 (for local development)
 - Maven (for local development)
+- Node.js and npm (for web client development)
 
 ### Using Docker Compose
 
@@ -70,6 +74,19 @@ mvn clean install
 
 # Run the service
 mvn spring-boot:run
+```
+
+For the React web client:
+
+```bash
+# Navigate to client directory
+cd search-miw-client
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
 ```
 
 ## Service Health Checks

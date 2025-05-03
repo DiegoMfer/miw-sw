@@ -16,9 +16,57 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Navbar from './components/Navbar';
 import History from './components/History';
+import { isAuthenticated, logout, authAxios } from './services/authService';
 
 function App() {
- 
+  const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
+  const [query, setQuery] = useState('');
+  const [searchHistory, setSearchHistory] = useState([]);
+  
+  useEffect(() => {
+    // Load search history when user logs in
+    if (isLoggedIn) {
+      fetchSearchHistory();
+    } else {
+      setSearchHistory([]);
+    }
+  }, [isLoggedIn]);
+  
+  const fetchSearchHistory = async () => {
+    try {
+      const userId = localStorage.getItem('userId');
+      const response = await authAxios.get(`http://localhost:8080/api/history/user/${userId}`);
+      setSearchHistory(response.data || []);
+    } catch (error) {
+      console.error('Error fetching search history:', error);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    setIsLoggedIn(false);
+  };
+  
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (!query.trim()) return;
+    
+    // If logged in, save search to history
+    if (isLoggedIn) {
+      const userId = localStorage.getItem('userId');
+      authAxios.post(`http://localhost:8080/api/history/user/${userId}?query=${encodeURIComponent(query)}`)
+        .then(() => fetchSearchHistory())
+        .catch(error => console.error('Error saving search:', error));
+    }
+    
+    // Implement search functionality here
+    console.log('Searching for:', query);
+  };
+  
+  const handleLucky = () => {
+    // Implement "I'm feeling lucky" functionality here
+    console.log('I\'m feeling lucky!');
+  };
 
   return (
     <Router>

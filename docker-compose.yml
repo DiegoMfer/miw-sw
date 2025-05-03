@@ -2,7 +2,27 @@ version: '3.8'
 
 services:
   # Frontend Client
-  
+  search-miw-client:
+    build:
+      context: ./search-miw-client
+      args:
+        - VITE_API_URL=http://localhost:8080 # Build-time API URL
+    container_name: search-miw-client
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:8080 # Runtime API URL (can be overridden)
+    networks:
+      - searchmiw-network
+    depends_on:
+      - gateway
+    # Add healthcheck to ensure the container is running properly
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
   
   # Search Service
   search-service:
@@ -163,6 +183,9 @@ services:
       - SERVICE_SEARCH_URL=http://search-service:8084
       - SERVICE_HISTORY_URL=http://history-service:8085
       - SERVICE_AUTH_URL=http://auth-service:8088
+      # Added CORS environment variables
+      - SPRING_WEBFLUX_CORS_ALLOWED_ORIGINS=http://localhost:3000
+      - SPRING_WEBFLUX_CORS_ALLOW_CREDENTIALS=true
     ports:
       - "8080:8080"
     networks:
