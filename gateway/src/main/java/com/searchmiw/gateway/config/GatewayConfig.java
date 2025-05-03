@@ -1,12 +1,12 @@
 package com.searchmiw.gateway.config;
 
+import com.searchmiw.gateway.filter.AuthenticationFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 
 @Configuration
 public class GatewayConfig {
@@ -19,31 +19,44 @@ public class GatewayConfig {
 
     @Value("${service.history.url}")
     private String historyServiceUrl;
+    
+    @Value("${service.auth.url}")
+    private String authServiceUrl;
+
+    @Autowired
+    private AuthenticationFilter authFilter;
 
     @Bean
     public RouteLocator routeLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                // User service routes
+                // Auth Service routes - Use direct URL instead of service discovery
+                .route("auth-service", r -> r.path("/api/auth/**")
+                        .uri(authServiceUrl))
+
+                // User service routes - protected by auth filter
                 .route("user-service", r -> r
                         .path("/api/users/**")
+                        .filters(f -> f.filter(authFilter.apply(new AuthenticationFilter.Config())))
                         .uri(userServiceUrl))
                 .route("user-health", r -> r
                         .path("/api/user-health/**")
                         .filters(f -> f.rewritePath("/api/user-health(?<segment>.*)", "/api/health${segment}"))
                         .uri(userServiceUrl))
 
-                // Search service routes
+                // Search service routes - protected by auth filter
                 .route("search-service", r -> r
                         .path("/api/search/**")
+                        .filters(f -> f.filter(authFilter.apply(new AuthenticationFilter.Config())))
                         .uri(searchServiceUrl))
                 .route("search-health", r -> r
                         .path("/api/search-health/**")
                         .filters(f -> f.rewritePath("/api/search-health(?<segment>.*)", "/api/health${segment}"))
                         .uri(searchServiceUrl))
 
-                // History service routes
+                // History service routes - protected by auth filter
                 .route("history-service", r -> r
                         .path("/api/history/**")
+                        .filters(f -> f.filter(authFilter.apply(new AuthenticationFilter.Config())))
                         .uri(historyServiceUrl))
                 .route("history-health", r -> r
                         .path("/api/history-health/**")
@@ -63,6 +76,14 @@ public class GatewayConfig {
                         .path("/history-api-docs/**")
                         .filters(f -> f.rewritePath("/history-api-docs(?<segment>.*)", "/v3/api-docs${segment}"))
                         .uri(historyServiceUrl))
+
+                // Health check route - public access
+                .route("health-check", r -> r.path("/api/health")
+                        .uri("lb://gateway"))
+
+                // Swagger UI and API docs - public access
+                .route("swagger-ui", r -> r.path("/swagger-ui/**", "/api-docs/**")
+                        .uri("lb://gateway"))
 
                 .build();
     }
