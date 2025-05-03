@@ -134,3 +134,19 @@ http://localhost:8080/api/search?query=Albert%20Einstein&language=en&userId=1234
 http://localhost:8080/api/history?page=0&size=10
 http://localhost:8080/api/users
 ```
+
+# Testing validation of jwt
+
+## 1. Register a new user
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test User","email":"test@example.com","password":"password123"}'
+
+## 2. Login to get a token
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}'
+
+## 3. Use the token to access a protected endpoint
+curl -X GET http://localhost:8080/api/users \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjYsInN1YiI6InRlc3RAZXhhbXBsZS5jb20iLCJpYXQiOjE3NDYyNjQwODksImV4cCI6MTc0NjM1MDQ4OX0.2Wlx1WiS5CmaqC7pg3_waCRJ5XmgBHPyp_gmy3mBXHY"
