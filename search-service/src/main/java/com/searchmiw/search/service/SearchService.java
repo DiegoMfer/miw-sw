@@ -88,11 +88,29 @@ public class SearchService {
     }
 
     private SearchResultItem convertToSearchResultItem(WikidataSearchEntity entity) {
+        String url;
+        
+        if (entity.getUrl() != null) {
+            // Handle URLs that already include the domain (starting with //www.wikidata.org)
+            if (entity.getUrl().startsWith("//www.wikidata.org")) {
+                url = "https:" + entity.getUrl();
+            } else if (entity.getUrl().startsWith("/")) {
+                // Handles relative URLs that start with a slash
+                url = "https://www.wikidata.org" + entity.getUrl();
+            } else {
+                // Fallback for any other URL format
+                url = "https://www.wikidata.org/wiki/" + entity.getId();
+            }
+        } else {
+            // If URL is null, construct it from the ID
+            url = "https://www.wikidata.org/wiki/" + entity.getId();
+        }
+        
         return SearchResultItem.builder()
                 .id(entity.getId())
                 .title(entity.getTitle())
                 .description(entity.getDescription())
-                .url("https://www.wikidata.org" + (entity.getUrl() != null && entity.getUrl().startsWith("/") ? entity.getUrl() : "/wiki/" + entity.getId()))
+                .url(url)
                 .build();
     }
     
