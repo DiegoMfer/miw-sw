@@ -18,6 +18,14 @@ import Navbar from './components/Navbar';
 import History from './components/History';
 import { isAuthenticated, logout, authAxios } from './services/authService';
 
+// Protected Route component to handle authentication
+const ProtectedRoute = ({ children }) => {
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
   const [query, setQuery] = useState('');
@@ -74,12 +82,16 @@ function App() {
         <Navbar isLoggedIn={isLoggedIn} handleLogout={handleLogout} />
 
         <Routes>
-          <Route path="/" element={<SearchPage 
-            query={query} 
-            setQuery={setQuery} 
-            handleSearch={handleSearch} 
-            handleLucky={handleLucky} 
-          />} />
+          <Route path="/" element={
+            <ProtectedRoute>
+              <SearchPage 
+                query={query} 
+                setQuery={setQuery} 
+                handleSearch={handleSearch} 
+                handleLucky={handleLucky} 
+              />
+            </ProtectedRoute>
+          } />
           <Route path="/login" element={
             isLoggedIn ? 
             <Navigate to="/" /> : 
@@ -91,14 +103,19 @@ function App() {
             <Register setIsLoggedIn={setIsLoggedIn} />
           } />
           <Route path="/profile" element={
-            isLoggedIn ? 
-            <div>Profile Page (Coming soon)</div> : 
-            <Navigate to="/login" />
+            <ProtectedRoute>
+              <div>Profile Page (Coming soon)</div>
+            </ProtectedRoute>
           } />
           <Route path="/history" element={
-            isLoggedIn ? 
-            <History searchHistory={searchHistory} /> : 
-            <Navigate to="/login" />
+            <ProtectedRoute>
+              <History searchHistory={searchHistory} />
+            </ProtectedRoute>
+          } />
+          <Route path="*" element={
+            <ProtectedRoute>
+              <Navigate to="/" />
+            </ProtectedRoute>
           } />
         </Routes>
 
