@@ -9,14 +9,16 @@ import {
   Paper,
   styled 
 } from '@mui/material';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import './App.css';
 import Login from './components/Login';
 import Register from './components/Register';
 import Navbar from './components/Navbar';
 import History from './components/History';
+import SearchResults from './components/SearchResults'; 
 import { isAuthenticated, logout, authAxios } from './services/authService';
+import { searchService } from './services/searchService';
 
 // Protected Route component to handle authentication
 const ProtectedRoute = ({ children }) => {
@@ -30,6 +32,9 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
   const [query, setQuery] = useState('');
   const [searchHistory, setSearchHistory] = useState([]);
+  const [searchResults, setSearchResults] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   
   useEffect(() => {
     // Load search history when user logs in
@@ -55,25 +60,43 @@ function App() {
     setIsLoggedIn(false);
   };
   
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
     if (!query.trim()) return;
     
-    // If logged in, save search to history
-    if (isLoggedIn) {
-      const userId = localStorage.getItem('userId');
-      authAxios.post(`http://localhost:8080/api/history/user/${userId}?query=${encodeURIComponent(query)}`)
-        .then(() => fetchSearchHistory())
-        .catch(error => console.error('Error saving search:', error));
-    }
+    setLoading(true);
+    setError(null);
     
-    // Implement search functionality here
-    console.log('Searching for:', query);
+    try {
+      // Make the search request through the gateway
+      // The searchService will automatically include userId if user is logged in
+      const results = await searchService.search(query, 'en');
+      
+      // Store the results
+      setSearchResults(results);
+    } catch (error) {
+      setError(error);
+      console.error('Error searching:', error);
+    } finally {
+      setLoading(false);
+    }
   };
   
-  const handleLucky = () => {
-    // Implement "I'm feeling lucky" functionality here
-    console.log('I\'m feeling lucky!');
+  const handleLucky = async () => {
+    if (!query.trim()) return;
+    
+    try {
+      // Make the search request - userId is automatically included if logged in
+      const results = await searchService.search(query, 'en');
+      
+      // If we have results, navigate to the first result
+      if (results?.results?.length > 0) {
+        const firstResult = results.results[0];
+        window.open(firstResult.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error with I\'m Feeling Lucky:', error);
+    }
   };
 
   return (
@@ -84,12 +107,19 @@ function App() {
         <Routes>
           <Route path="/" element={
             <ProtectedRoute>
-              <SearchPage 
-                query={query} 
-                setQuery={setQuery} 
-                handleSearch={handleSearch} 
-                handleLucky={handleLucky} 
-              />
+              <>
+                <SearchPage 
+                  query={query} 
+                  setQuery={setQuery} 
+                  handleSearch={handleSearch} 
+                  handleLucky={handleLucky} 
+                />
+                <SearchResults 
+                  results={searchResults}
+                  loading={loading}
+                  error={error}
+                />
+              </>
             </ProtectedRoute>
           } />
           <Route path="/login" element={
@@ -166,7 +196,7 @@ function SearchPage({ query, setQuery, handleSearch, handleLucky }) {
           onClick={handleSearch}
           sx={{ mr: 2 }}
         >
-          Google Search
+          Search
         </SearchButton>
         <SearchButton 
           variant="contained" 

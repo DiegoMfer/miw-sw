@@ -1,93 +1,84 @@
 import React from 'react';
 import { 
-  Box, 
+  Container, 
   Typography, 
+  Box, 
   List, 
-  ListItem,
+  ListItem, 
+  ListItemText, 
+  Paper,
   Divider,
-  CircularProgress,
-  Link
+  Link,
+  CircularProgress
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
 
-function SearchResults({ results, loading, query }) {
+const SearchResults = ({ results, loading, error }) => {
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" my={4}>
+      <Container maxWidth="md" sx={{ mt: 4, textAlign: 'center' }}>
         <CircularProgress />
-      </Box>
+        <Typography variant="body1" sx={{ mt: 2 }}>
+          Searching...
+        </Typography>
+      </Container>
     );
   }
 
-  // Check if results is empty or has no results array
-  if (!results || !results.results || results.results.length === 0) {
+  if (error) {
     return (
-      <Box my={4}>
-        <Typography variant="body1" color="textSecondary">
-          No results found for "{query}"
+      <Container maxWidth="md" sx={{ mt: 4 }}>
+        <Typography variant="h6" color="error">
+          Error: {error.message || "Failed to fetch search results"}
         </Typography>
-      </Box>
+      </Container>
+    );
+  }
+
+  if (!results) {
+    return (
+      <Container maxWidth="md" sx={{ mt: 4 }}>
+        <Typography variant="body1">
+          Enter a search term to see results
+        </Typography>
+      </Container>
     );
   }
 
   return (
-    <Box my={4}>
-      <Box mb={2}>
-        <Typography variant="body2" color="textSecondary">
-          About {results.totalResults} results ({(results.searchTime / 1000).toFixed(2)} seconds)
+    <Container maxWidth="md" sx={{ mt: 4 }}>
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="h6">
+          Found {results.totalResults} results for "{results.query}" ({results.searchTime} ms)
         </Typography>
       </Box>
-      
-      <ResultList>
-        {results.results.map((result, index) => (
-          <React.Fragment key={result.id}>
-            <ResultItem>
-              <Link 
-                href={result.url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                underline="hover"
-              >
-                <ResultTitle variant="h6">{result.title}</ResultTitle>
-              </Link>
-              <ResultUrl variant="body2" color="success.main">
-                {result.url}
-              </ResultUrl>
-              <ResultDescription variant="body2">
-                {result.description || 'No description available'}
-              </ResultDescription>
-            </ResultItem>
-            {index < results.results.length - 1 && <Divider />}
-          </React.Fragment>
-        ))}
-      </ResultList>
-    </Box>
+
+      {results.results && results.results.length > 0 ? (
+        <Paper elevation={1}>
+          <List>
+            {results.results.map((item, index) => (
+              <React.Fragment key={item.id}>
+                {index > 0 && <Divider />}
+                <ListItem>
+                  <ListItemText
+                    primary={
+                      <Link href={item.url} target="_blank" rel="noopener" underline="hover">
+                        {item.title}
+                      </Link>
+                    }
+                    secondary={item.description || "No description available"}
+                  />
+                </ListItem>
+              </React.Fragment>
+            ))}
+          </List>
+        </Paper>
+      ) : (
+        <Typography variant="body1">
+          No results found for "{results.query}". Try a different search term.
+        </Typography>
+      )}
+    </Container>
   );
-}
-
-// Styled components
-const ResultList = styled(List)(({ theme }) => ({
-  padding: 0,
-}));
-
-const ResultItem = styled(ListItem)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'flex-start',
-  padding: theme.spacing(2, 0),
-}));
-
-const ResultTitle = styled(Typography)(({ theme }) => ({
-  color: '#1a0dab',
-  marginBottom: theme.spacing(0.5),
-}));
-
-const ResultUrl = styled(Typography)(({ theme }) => ({
-  marginBottom: theme.spacing(0.5),
-}));
-
-const ResultDescription = styled(Typography)(({ theme }) => ({
-  color: '#4d5156',
-}));
+};
 
 export default SearchResults;

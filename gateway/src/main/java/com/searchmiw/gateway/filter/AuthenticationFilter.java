@@ -38,6 +38,29 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             String path = exchange.getRequest().getURI().getPath();
+            
+            // Special handling for search endpoint - allow without auth but extract userId if available
+            if (path.startsWith("/api/search") && exchange.getRequest().getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
+                String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    // Validate token if present, but don't block if invalid
+                    return webClientBuilder.build()
+                            .get()
+                            .uri(authServiceUrl + validateEndpoint)
+                            .header(HttpHeaders.AUTHORIZATION, authHeader)
+                            .retrieve()
+                            .bodyToMono(Boolean.class)
+                            .flatMap(isValid -> {
+                                // Continue regardless of token validity for search endpoint
+                                return chain.filter(exchange);
+                            })
+                            .onErrorResume(error -> {
+                                // Just log the error and continue for search endpoint
+                                log.warn("Invalid token for search but continuing: {}", error.getMessage());
+                                return chain.filter(exchange);
+                            });
+                }
+            }
 
             // Skip validation for public paths
             if (isPublicPath(path)) {

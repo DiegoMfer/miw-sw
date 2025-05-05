@@ -10,17 +10,13 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties(ignoreUnknown = true)  // This ensures any unknown fields are ignored
 public class WikidataSearchEntity {
     private String id;
     private String title;
-    private String url;
     private String description;
+    private String url;
+    private Map<String, String> match;
     
-    // Changed from Map<String, String> to Map<String, Object> to handle nested structures
-    private Map<String, Object> display;
-    
-    // Used to extract matched text
-    private Map<String, Object> match;  // Changed from String to Map to handle nested structure
-    private Map<String, Object> aliases;
+    // Aliases field is completely removed since we're ignoring unknown properties
 }
