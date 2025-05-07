@@ -83,17 +83,15 @@ function App() {
   };
   
   const handleLucky = async () => {
-    if (!query.trim()) return;
-    
     try {
-      // Make the search request - userId is automatically included if logged in
-      const results = await searchService.search(query, 'en');
+      // Generate a random number between 1 and 100000
+      const randomNumber = Math.floor(Math.random() * 100000) + 1;
       
-      // If we have results, navigate to the first result
-      if (results?.results?.length > 0) {
-        const firstResult = results.results[0];
-        window.open(firstResult.url, '_blank');
-      }
+      // Construct the URL with the random number
+      const wikidataUrl = `https://www.wikidata.org/wiki/Q${randomNumber}`;
+      
+      // Open the URL in a new tab
+      window.open(wikidataUrl, '_blank');
     } catch (error) {
       console.error('Error with I\'m Feeling Lucky:', error);
     }
