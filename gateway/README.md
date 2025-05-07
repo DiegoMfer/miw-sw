@@ -150,3 +150,7 @@ curl -X POST http://localhost:8080/api/auth/login \
 ## 3. Use the token to access a protected endpoint
 curl -X GET http://localhost:8080/api/users \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjYsInN1YiI6InRlc3RAZXhhbXBsZS5jb20iLCJpYXQiOjE3NDYyNjQwODksImV4cCI6MTc0NjM1MDQ4OX0.2Wlx1WiS5CmaqC7pg3_waCRJ5XmgBHPyp_gmy3mBXHY"
+
+## Automatic Redirection for History Endpoints
+
+The gateway service automatically redirects requests to the appropriate history service endpoints. This ensures that the history service is always accessed correctly, even if its base path changes in the future.

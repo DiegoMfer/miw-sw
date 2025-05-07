@@ -1,12 +1,16 @@
 package com.searchmiw.gateway.config;
 
 import com.searchmiw.gateway.filter.AuthenticationFilter;
+import com.searchmiw.gateway.filter.HistoryRedirectFilter;
+import com.searchmiw.gateway.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 
 @Configuration
 public class GatewayConfig {
@@ -25,6 +29,12 @@ public class GatewayConfig {
 
     @Autowired
     private AuthenticationFilter authFilter;
+    
+    @Autowired
+    private HistoryRedirectFilter historyRedirectFilter;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Bean
     public RouteLocator routeLocator(RouteLocatorBuilder builder) {
@@ -54,8 +64,19 @@ public class GatewayConfig {
                         .uri(searchServiceUrl))
 
                 // History service routes - protected by auth filter
-                .route("history-service", r -> r
+                // Special handling for /api/history (root path) to redirect to user-specific endpoint
+                .route("history-service-root", r -> r
+                        .path("/api/history")
+                        .filters(f -> f
+                            .filter(authFilter.apply(new AuthenticationFilter.Config()))
+                            .filter(historyRedirectFilter.apply(new HistoryRedirectFilter.Config()))
+                        )
+                        .uri(historyServiceUrl))
+                // For other history paths (like /api/history/{id} or paths with special parameters)
+                .route("history-service-other", r -> r
                         .path("/api/history/**")
+                        .and()
+                        .path("/api/history/{segment}/**", "/api/history/user/**")  // Use specific patterns instead of lambda
                         .filters(f -> f.filter(authFilter.apply(new AuthenticationFilter.Config())))
                         .uri(historyServiceUrl))
                 .route("history-health", r -> r

@@ -107,3 +107,36 @@ The Gateway service exposes the following main endpoints:
 The Aggregator service provides a GraphQL interface at:
 - GraphQL endpoint: `http://localhost:8087/graphql`
 - GraphiQL interface: `http://localhost:8087/graphiql`
+
+## Accessing User History
+
+### Using JWT Token Authentication (Recommended)
+```bash
+# This will automatically redirect to the current user's history based on their JWT token
+curl -X GET "http://localhost:8080/api/history?page=0&size=10" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9..."
+```
+
+### Accessing Specific User History
+```bash
+# Replace {userId} with the actual user ID
+curl -X GET "http://localhost:8080/api/history/user/{userId}?page=0&size=10" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9..."
+```
+
+
+testuser: 
+
+{
+  "name": "testdiego12345",
+  "email": "testdiego12345@gmail.com",
+  "password": "testdiego12345"
+}
+
+{
+  "userId": 10,
+  "name": "testdiego12345",
+  "email": "testdiego12345@gmail.com",
+  "token": "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEwLCJzdWIiOiJ0ZXN0ZGllZ28xMjM0NUBnbWFpbC5jb20iLCJpYXQiOjE3NDY2MjAyOTQsImV4cCI6MTc0NjcwNjY5NH0.JtyEz9Z639PsEFP4tAjZlfh7ZuqJc1TPG6BYW0508L4",
+  "message": "Registration successful"
+}
