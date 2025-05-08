@@ -16,6 +16,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Navbar from './components/Navbar';
 import History from './components/History';
+import Profile from './components/Profile';
 import SearchResults from './components/SearchResults'; 
 import { isAuthenticated, logout, authAxios } from './services/authService';
 import { searchService } from './services/searchService';
@@ -132,7 +133,7 @@ function App() {
           } />
           <Route path="/profile" element={
             <ProtectedRoute>
-              <div>Profile Page (Coming soon)</div>
+              <Profile />
             </ProtectedRoute>
           } />
           <Route path="/history" element={

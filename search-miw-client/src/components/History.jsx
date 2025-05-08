@@ -55,11 +55,6 @@ function History() {
     fetchSearchHistory();
   }, []);
 
-  const handleClick = (query) => {
-    // Navigate to home and set the query
-    navigate('/?q=' + encodeURIComponent(query));
-  };
-
   return (
     <Container maxWidth="md">
       <Box sx={{ mt: 4, mb: 4 }}>
@@ -86,9 +81,7 @@ function History() {
             <List>
               {searchHistory.map((item, index) => (
                 <ListItem 
-                  button 
                   key={item.id || index}
-                  onClick={() => handleClick(item.query)}
                   divider={index < searchHistory.length - 1}
                 >
                   <ListItemIcon>

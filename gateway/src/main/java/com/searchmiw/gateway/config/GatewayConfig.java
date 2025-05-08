@@ -2,6 +2,7 @@ package com.searchmiw.gateway.config;
 
 import com.searchmiw.gateway.filter.AuthenticationFilter;
 import com.searchmiw.gateway.filter.HistoryRedirectFilter;
+import com.searchmiw.gateway.filter.ProfileRedirectFilter;
 import com.searchmiw.gateway.filter.SearchLoggingFilter;
 import com.searchmiw.gateway.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,9 @@ public class GatewayConfig {
     
     @Autowired
     private HistoryRedirectFilter historyRedirectFilter;
+    
+    @Autowired
+    private ProfileRedirectFilter profileRedirectFilter;
     
     @Autowired
     private SearchLoggingFilter searchLoggingFilter;
@@ -90,6 +94,13 @@ public class GatewayConfig {
                         .path("/api/history-health/**")
                         .filters(f -> f.rewritePath("/api/history-health(?<segment>.*)", "/api/health${segment}"))
                         .uri(historyServiceUrl))
+
+                // Profile route - redirects to user service with user ID from JWT
+                .route("profile_route", r -> r
+                        .path("/api/profile")
+                        .filters(f -> f
+                                .filter(profileRedirectFilter.apply(new ProfileRedirectFilter.Config())))
+                        .uri(userServiceUrl))
 
                 // API Documentation routes
                 .route("user-api-docs", r -> r
