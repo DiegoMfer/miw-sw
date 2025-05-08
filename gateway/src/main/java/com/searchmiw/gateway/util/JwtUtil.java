@@ -16,17 +16,21 @@ public class JwtUtil {
         try {
             // Extract the payload part (second part) of the JWT token
             String[] chunks = token.split("\\.");
-            if (chunks.length < 2) {
-                throw new JwtException("Invalid JWT token format");
+            if (chunks.length != 3) { // Valid JWTs have 3 parts: header.payload.signature
+                throw new JwtException("Invalid JWT token format: wrong number of parts");
             }
             
             // Base64 decode the payload
             Base64.Decoder decoder = Base64.getUrlDecoder();
             String payload = new String(decoder.decode(chunks[1]));
             
-            // Parse the token and extract claims
-            // Note: We're not verifying the signature here since Auth Service already did that
-            return Jwts.parser().parseClaimsJwt("." + payload + ".").getBody();
+            // The proper way to parse claims without signature verification:
+            // We use unsecured parsing because we're only interested in the claims,
+            // and authentication was already handled by the Auth Service
+            return Jwts.parserBuilder()
+                .build()
+                .parseClaimsJwt(chunks[0] + "." + chunks[1] + ".") // Use just header and payload with a dummy signature
+                .getBody();
         } catch (Exception e) {
             log.error("Error extracting claims from JWT token: {}", e.getMessage());
             return null;
