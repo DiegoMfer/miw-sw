@@ -27,10 +27,11 @@ services:
   data-panel-client:
     build:
       context: ./data-panel-client
-
     container_name: data-panel-client
     ports:
       - "3001:80"
+    environment:
+      - VITE_AGGREGATOR_API_URL=http://aggregator:8087/graphql
     networks:
       - searchmiw-network
     depends_on:
