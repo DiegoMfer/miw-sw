@@ -23,6 +23,24 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+  data-panel-client:
+    build:
+      context: ./data-panel-client
+
+    container_name: data-panel-client
+    ports:
+      - "3001:80"
+    networks:
+      - searchmiw-network
+    depends_on:
+      - gateway
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
   
   # Search Service
   search-service:
@@ -177,12 +195,14 @@ services:
       - search-service
       - history-service
       - auth-service
+      - aggregator 
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - SERVICE_USER_URL=http://user-service:8086
       - SERVICE_SEARCH_URL=http://search-service:8084
       - SERVICE_HISTORY_URL=http://history-service:8085
       - SERVICE_AUTH_URL=http://auth-service:8088
+      - SERVICE_AGGREGATOR_URL=http://aggregator:8087 
       # Added CORS environment variables
       - SPRING_WEBFLUX_CORS_ALLOWED_ORIGINS=http://localhost:3000
       - SPRING_WEBFLUX_CORS_ALLOW_CREDENTIALS=true

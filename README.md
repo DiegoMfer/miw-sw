@@ -13,6 +13,7 @@ The SearchMIW platform consists of the following microservices:
 - **Aggregator**: GraphQL service that aggregates data from multiple services
 - **Gateway**: API Gateway for routing requests to appropriate services
 - **Web Client**: React-based frontend application for user interaction
+- **Data Panel Client**: Vue-based frontend for data panel visualization/management
 
 ## Services
 
@@ -25,6 +26,7 @@ The platform consists of the following services:
 - **Auth Service**: Authentication and authorization service running on port 8088
 - **Aggregator**: Data aggregation service running on port 8087
 - **Web Client**: Frontend application running on port 3000
+- **Data Panel Client**: Frontend application for data panel running on port 3001
 
 ## Service Documentation
 
@@ -33,11 +35,12 @@ Each service exposes its API documentation through OpenAPI/Swagger:
 | Service | Local URL | Docker URL | Port | Description |
 |---------|-----------|------------|------|-------------|
 | Web Client | [Frontend](http://localhost:3000) | http://localhost:3000 | 3000 | React frontend for user interaction |
+| Data Panel Client | [Data Panel](http://localhost:3001) | http://localhost:3001 | 3001 | React frontend for data panel |
 | Gateway | [Swagger UI](http://localhost:8080/swagger-ui.html) | http://localhost:8080/swagger-ui.html | 8080 | API Gateway for routing requests |
 | Search Service | [Swagger UI](http://localhost:8084/swagger-ui/index.html) | http://localhost:8084/swagger-ui/index.html | 8084 | Service for Wikidata entity search |
 | History Service | [Swagger UI](http://localhost:8085/swagger-ui/index.html) | http://localhost:8085/swagger-ui/index.html | 8085 | Service for tracking search history |
 | User Service | [Swagger UI](http://localhost:8086/swagger-ui/index.html) | http://localhost:8086/swagger-ui/index.html | 8086 | User account management service |
-| Aggregator | [GraphiQL](http://localhost:8087/graphiql) | http://localhost:8087/graphiql | 8087 | GraphQL data aggregation service |
+| Aggregator | [GraphiQL](http://localhost:8087/graphiql) | http://localhost:8087/graphiql | 8087 | GraphQL data aggregation service. GraphiQL also accessible via Gateway at `/api/graphiql`. |
 | Auth Service | [Swagger UI](http://localhost:8088/swagger-ui.html) | http://localhost:8088/swagger-ui.html | 8088 | Authentication and authorization service |
 
 **Note:** For accessing services from outside the Docker network, always use `localhost` with the mapped port. The Docker service names (like `gateway:8080`) only work within the Docker network or if configured in your hosts file.
@@ -101,6 +104,8 @@ The Gateway service exposes the following main endpoints:
 - **History**: `http://localhost:8080/api/history?page=0&size=10`
 - **Users**: `http://localhost:8080/api/users`
 - **Authentication**: `http://localhost:8080/api/auth/login` and `http://localhost:8080/api/auth/register`
+- **GraphQL**: `http://localhost:8080/api/graphql`
+- **GraphiQL (via Gateway)**: `http://localhost:8080/api/graphiql`
 
 ## GraphQL Interface
 

@@ -29,6 +29,9 @@ public class GatewayConfig {
     @Value("${service.auth.url}")
     private String authServiceUrl;
 
+    @Value("${service.aggregator.url}")
+    private String aggregatorServiceUrl;
+
     @Autowired
     private AuthenticationFilter authFilter;
     
@@ -115,6 +118,23 @@ public class GatewayConfig {
                         .path("/history-api-docs/**")
                         .filters(f -> f.rewritePath("/history-api-docs(?<segment>.*)", "/v3/api-docs${segment}"))
                         .uri(historyServiceUrl))
+
+                // Aggregator service routes
+                .route("aggregator-graphql", r -> r
+                        .path("/api/graphql/**")
+                        .filters(f -> f
+                                .filter(authFilter.apply(new AuthenticationFilter.Config()))
+                                .rewritePath("/api/graphql(?<segment>.*)", "/graphql${segment}")
+                        )
+                        .uri(aggregatorServiceUrl))
+                .route("aggregator-graphiql", r -> r
+                        .path("/api/graphiql/**")
+                        .filters(f -> f.rewritePath("/api/graphiql(?<segment>.*)", "/graphiql${segment}"))
+                        .uri(aggregatorServiceUrl))
+                .route("aggregator-health", r -> r
+                        .path("/api/aggregator-health/**")
+                        .filters(f -> f.rewritePath("/api/aggregator-health(?<segment>.*)", "/api/health${segment}")) // Assuming aggregator exposes /api/health
+                        .uri(aggregatorServiceUrl))
 
                 // Health check route - public access
                 .route("health-check", r -> r.path("/api/health")
