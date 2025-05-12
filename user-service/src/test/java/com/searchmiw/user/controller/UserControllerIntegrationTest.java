@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder; // Added import
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,9 @@ public class UserControllerIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired // Added PasswordEncoder
+    private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void setup() {
@@ -223,6 +227,7 @@ public class UserControllerIntegrationTest {
 
     @Test
     void verifyCredentials_ReturnsUnauthorizedAndFalse_WhenPasswordIsInvalid() throws Exception {
+        // Now createTestUser will store an encoded password
         createTestUser("verifyfail@example.com", "Verify Fail User", "password123");
 
         UserCredentialsRequest credentials = new UserCredentialsRequest();
@@ -262,72 +267,10 @@ public class UserControllerIntegrationTest {
 
     // Overload helper method to include password for tests that need it
     private User createTestUser(String email, String name, String password) {
-        User user = User.builder()
-                .email(email)
-                .name(name)
-                .password(password) // In a real scenario, this would be hashed by the service
-                .build();
-        // For verify tests, we need to save the user with a password the service can check.
-        // The actual UserService hashes passwords, so we'd ideally mock the PasswordEncoder
-        // or ensure the test profile uses a NoOpPasswordEncoder if we were to save it directly
-        // and expect verifyPassword to work.
-        // However, createTestUser is used for setting up data for controller tests,
-        // and the /verify endpoint itself calls userService.findByEmail and then userService.verifyPassword.
-        // The userService.createUser hashes the password. So, for verify to work, we must use the actual service
-        // to create the user if we want to test the /verify endpoint accurately with hashed passwords.
-
-        // For simplicity in this example, and given existing tests might rely on direct repo saves,
-        // let's assume the service's verifyPassword can handle plain text if directly saved for test setup,
-        // OR that the test password encoder is a NoOpPasswordEncoder.
-        // A more robust approach for verify tests would be to call the actual createUser endpoint
-        // or mock the passwordEncoder.matches to return true for the test password.
-
-        // Let's adjust to use the actual service to ensure password gets encoded.
-        UserRequest userRequest = new UserRequest();
-        userRequest.setEmail(email);
-        userRequest.setName(name);
-        userRequest.setPassword(password);
-
-        // We need UserService instance here, or call the endpoint.
-        // Since this is an integration test for the controller, calling the POST /api/users endpoint
-        // to create the user would be the most "integrated" way.
-        // However, to keep createTestUser simple and focused on just getting a user in DB for other tests:
-        // We'll save it directly. This means verifyPassword test might need adjustment
-        // if PasswordEncoder in test context is not a NoOp one.
-        // For now, we'll assume it's fine for the purpose of adding a *simple* test.
-        // The existing createTestUser saves a user without a password, this one adds it.
-        // The actual password verification happens in UserService.verifyPassword which uses passwordEncoder.matches.
-        // So, the password stored via userRepository.save() must be the encoded one.
-        // This helper is problematic for /verify if not handled carefully.
-
-        // Re-thinking: The existing createTestUser(email, name) is fine for tests not needing password.
-        // For /verify, we need a user in DB with a known raw password and its corresponding hash.
-        // The simplest way in an integration test is to use the service to create the user.
-        // Let's modify this helper to use the service, but that introduces dependency on UserService here.
-        // Alternative: use the /api/users POST endpoint to create the user.
-
-        // Let's stick to userRepository.save for now and assume test PasswordEncoder handles it,
-        // or adjust if tests fail due to encoding.
-        // The provided UserService uses PasswordEncoder, so this direct save won't work with verify.
-
-        // Correct approach for an integration test of /verify:
-        // 1. Call POST /api/users to create a user (which hashes password).
-        // 2. Then call POST /api/users/verify.
-
-        // Let's refine the test methods themselves instead of this helper for /verify.
-        // The original createTestUser is fine for GET, DELETE etc.
-        // The tests for /verify will handle user creation via the endpoint.
-
-        // Keeping the original helper's signature for now, but it's not used by the new verify tests.
-        // The new tests will create users via the actual endpoint.
-        // This helper will be updated to reflect a more robust way if needed.
-        // For now, the new tests will create users via the actual endpoint.
-        // The helper below is the one from the original file, slightly modified to add password.
-        // It will be used by the new tests directly.
         User userToSave = User.builder()
                 .email(email)
                 .name(name)
-                .password(password) // Encode password before saving
+                .password(passwordEncoder.encode(password)) // Encode password before saving
                 .build();
         return userRepository.save(userToSave);
     }
