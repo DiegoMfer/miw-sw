@@ -1,0 +1,135 @@
+config:
+  target: "http://localhost:8080" # Gateway URL from README
+  phases:
+    - duration: 60
+      arrivalRate: 5
+      name: "Warm-up phase"
+    - duration: 120
+      arrivalRate: 5
+      rampTo: 10
+      name: "Ramp-up phase"
+    - duration: 300
+      arrivalRate: 10
+      name: "Sustained load phase"
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  - name: "Gateway Health Check"
+    flow:
+      - get:
+          url: "/api/health"
+          capture:
+            - json: "$.status"
+              as: "healthStatus"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - hasProperty: "status"
+            - equals:
+                - "{{ healthStatus }}"
+                - "UP"
+
+
+  - name: "User Login and Capture Token" # Uncommented and updated
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "testdiego12345@gmail.com" 
+            password: "testdiego12345"
+          capture:
+            - json: "$.token" # Adjust based on your auth service's token response structure
+              as: "authToken"
+      - log: "Captured auth token: {{ authToken }}" # For debugging
+
+  - name: "Search and Check History (Authenticated)"
+    flow:
+      - get: # First, perform a search
+          url: "/api/search?query=artillery&language=en" # Example search query
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - contentType: json
+      - think: 1 # Pause for 1 second to allow history to be processed
+      - get: # Then, check the history
+          url: "/api/history"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            # Optionally, add more specific checks for the history content
+            # For example, if history returns an array and the first item is the search
+            # - hasProperty: "0.query"
+            # - equals:
+            #     - "{{ someVariableHoldingTheLastQuery }}" # This would require capturing the query
+            #     - "artillery"
+
+  - name: "GraphQL GetStatsData Query (Authenticated)"
+    flow:
+      # 1. Login to get a token
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "testdiego12345@gmail.com" # Using consistent credentials
+            password: "testdiego12345"
+          capture:
+            - json: "$.token"
+              as: "graphqlAuthToken" # Specific token variable for this scenario
+      - log: "Captured auth token for GraphQL query: {{ graphqlAuthToken }}"
+
+      # 2. Make GraphQL GetStatsData query
+      - post:
+          url: "/api/graphql" # The GraphQL endpoint
+          headers:
+            Authorization: "Bearer {{ graphqlAuthToken }}"
+            # Content-Type: application/json is set by defaults
+          json:
+            query: "query GetStatsData { historyEntries { id userId query timestamp } users { id name email createdAt updatedAt } }"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - hasProperty: "data.historyEntries" # Verify presence of historyEntries in response
+            - hasProperty: "data.users"         # Verify presence of users in response
+
+  - name: "Register New User and Use Token"
+    flow:
+      - vars: # Define variables for dynamic user data
+          userName: "TestUser{{ $randomString(5) }}" # Generates a random string for uniqueness
+          userEmail: "test_{{ $randomString(8) }}@example.com" # Ensures unique email
+          userPassword: "password{{ $randomString(4) }}" # Creates a password like "passwordabcd" (12 chars)
+      - log: "Attempting to register user: {{ userName }} / {{ userEmail }}"
+      - post:
+          url: "/api/auth/register"
+          json:
+            name: "{{ userName }}"
+            email: "{{ userEmail }}"
+            password: "{{ userPassword }}"
+          capture:
+            - json: "$.token" # Capture token directly from registration response
+              as: "newUserAuthToken"
+            - json: "$.userId" # Capture userId as well
+              as: "newUserId"
+          expect:
+            - statusCode: 201 # Expect 201 Created for successful registration
+      - log: "User {{ userName }} (ID: {{ newUserId }}) registered. Captured token: {{ newUserAuthToken }}"
+      # Optional: Use the token for a subsequent request with the newly registered user
+      - get:
+          url: "/api/history" # Example authenticated endpoint
+          headers:
+            Authorization: "Bearer {{ newUserAuthToken }}"
+          expect:
+            - statusCode: 200
+      - log: "Successfully fetched history for new user {{ userName }}"
+
+  # --- Authentication Flow (Conceptual - requires actual credentials and token handling) ---
+  # To properly test authenticated endpoints, you would first need a scenario to log in.
+  # This is a conceptual placeholder. You'd need to:
+  # 1. Have valid user credentials.
+  # 2. POST to /api/auth/login.
+  # 3. Capture the JWT token from the response.
+  # 4. Use the captured token in the Authorization header for subsequent requests.
+
