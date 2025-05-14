@@ -13,8 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 public class SearchResult {
     private String query;
-    private String originalQuery;
-    private String transformedQuery;
     private List<SearchResultItem> results;
     private long totalResults;
     private long searchTime; // in milliseconds
