@@ -6,7 +6,6 @@ import { isAuthenticated, logout } from './services/authService'; // Import auth
 import StatsPage from './pages/StatsPage'; 
 import Navbar from './components/Navbar'; 
 import WelcomePage from './pages/WelcomePage'; 
-import LoadTestsPage from './pages/LoadTestsPage'; // Import the new page
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
@@ -32,7 +31,6 @@ function App() {
       <Routes>
         <Route path="/" element={<WelcomePage />} /> 
         <Route path="/stats" element={<StatsPage />} />
-        <Route path="/load-tests" element={<LoadTestsPage />} /> {/* Add route for LoadTestsPage */}
         {/* Add a catch-all or redirect for logged-in users if they hit an unknown path */}
         <Route path="*" element={<Navigate to="/" />} /> 
       </Routes>

@@ -12,9 +12,6 @@ function Navbar({ handleLogout }) { // Accept handleLogout as a prop
         <Button color="inherit" component={RouterLink} to="/stats">
           Stats
         </Button>
-        <Button color="inherit" component={RouterLink} to="/load-tests">
-          Load Tests
-        </Button>
         {handleLogout && ( // Conditionally render logout button if handleLogout is provided
           <Button color="inherit" onClick={handleLogout}>
             Logout
