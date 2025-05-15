@@ -16,6 +16,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,47 +46,64 @@ public class SearchService {
     @Cacheable(value = "wikidata-searches", key = "#query + '-' + #language")
     public SearchResult search(String query, String language) {
         log.info("Searching Wikidata for query: {} in language: {}", query, language);
-        
+
         Instant startTime = Instant.now();
-        
-        String url = UriComponentsBuilder.fromHttpUrl(wikidataApiUrl)
-                .queryParam("action", "wbsearchentities")
-                .queryParam("search", query)
-                .queryParam("language", language)
-                .queryParam("uselang", language)  // Added uselang parameter
-                .queryParam("format", "json")
-                .queryParam("limit", 10)
-                .build()
-                .toUriString();
-        
-        try {
-            WikidataResponse response = getWebClient().get()
-                    .uri(url)
-                    .retrieve()
-                    .bodyToMono(WikidataResponse.class)
-                    .block();
-            
-            long searchTime = Duration.between(startTime, Instant.now()).toMillis();
-            
-            if (response != null && response.getSearch() != null) {
-                List<SearchResultItem> results = response.getSearch().stream()
-                        .map(this::convertToSearchResultItem)
-                        .collect(Collectors.toList());
-                
-                return SearchResult.builder()
-                        .query(query)
-                        .results(results)
-                        .totalResults(results.size())
-                        .searchTime(searchTime)
-                        .build();
-            } else {
-                return createEmptyResult(query, searchTime);
+
+        String[] words = query.trim().split("\\s+");
+        Map<String, SearchResultItem> uniqueResults = new LinkedHashMap<>();
+        final long[] totalSearchTime = {0}; // Use array to allow mutation in lambda
+
+        java.util.function.Consumer<String> doSearch = q -> {
+            String url = UriComponentsBuilder.fromHttpUrl(wikidataApiUrl)
+                    .queryParam("action", "wbsearchentities")
+                    .queryParam("search", q)
+                    .queryParam("language", language)
+                    .queryParam("uselang", language)
+                    .queryParam("format", "json")
+                    .queryParam("limit", 100)
+                    .build()
+                    .toUriString();
+            Instant partStart = Instant.now();
+            try {
+                WikidataResponse response = getWebClient().get()
+                        .uri(url)
+                        .retrieve()
+                        .bodyToMono(WikidataResponse.class)
+                        .block();
+                long partTime = Duration.between(partStart, Instant.now()).toMillis();
+                totalSearchTime[0] += partTime;
+                if (response != null && response.getSearch() != null) {
+                    response.getSearch().forEach(entity -> {
+                        SearchResultItem item = convertToSearchResultItem(entity);
+                        uniqueResults.putIfAbsent(item.getId(), item);
+                    });
+                }
+            } catch (Exception e) {
+                log.error("Error searching Wikidata for '{}': {}", q, e.getMessage());
+                long partTime = Duration.between(partStart, Instant.now()).toMillis();
+                totalSearchTime[0] += partTime;
             }
-        } catch (Exception e) {
-            log.error("Error searching Wikidata: {}", e.getMessage(), e);
-            long searchTime = Duration.between(startTime, Instant.now()).toMillis();
-            return createEmptyResult(query, searchTime);
+        };
+
+        doSearch.accept(query);
+
+        if (words.length > 1) {
+            for (String word : words) {
+                if (!word.equalsIgnoreCase(query)) {
+                    doSearch.accept(word);
+                }
+            }
         }
+
+        long elapsed = Duration.between(startTime, Instant.now()).toMillis();
+        long searchTime = totalSearchTime[0] > 0 ? totalSearchTime[0] : elapsed;
+
+        return SearchResult.builder()
+                .query(query)
+                .results(new java.util.ArrayList<>(uniqueResults.values()))
+                .totalResults(uniqueResults.size())
+                .searchTime(searchTime)
+                .build();
     }
 
     private SearchResultItem convertToSearchResultItem(WikidataSearchEntity entity) {
