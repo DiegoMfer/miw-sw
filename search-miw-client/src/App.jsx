@@ -29,6 +29,8 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
   const [query, setQuery] = useState('');
@@ -49,7 +51,7 @@ function App() {
   const fetchSearchHistory = async () => {
     try {
       const userId = localStorage.getItem('userId');
-      const response = await authAxios.get(`http://localhost:8080/api/history/user/${userId}`);
+      const response = await authAxios.get(`${API_URL}/api/history/user/${userId}`);
       setSearchHistory(response.data || []);
     } catch (error) {
       console.error('Error fetching search history:', error);

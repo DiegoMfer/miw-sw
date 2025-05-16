@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Use environment variable with fallback and support for runtime replacement
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080' || 'RUNTIME_API_URL_PLACEHOLDER';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 const AUTH_ENDPOINT = `${API_URL}/api/auth`;
 
 // Store JWT token and user info in localStorage

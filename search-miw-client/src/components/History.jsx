@@ -17,6 +17,8 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
 function History() {
   const navigate = useNavigate();
   const [searchHistory, setSearchHistory] = useState([]);
@@ -37,7 +39,7 @@ function History() {
         }
         
         // Use the gateway endpoint that automatically redirects based on JWT token
-        const response = await axios.get('http://localhost:8080/api/history?page=0&size=10', {
+        const response = await axios.get(`${API_URL}/api/history?page=0&size=10`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

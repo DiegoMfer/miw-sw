@@ -13,6 +13,8 @@ import {
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
 function Profile() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -32,7 +34,7 @@ function Profile() {
         }
         
         // Use the gateway endpoint that will be redirected to the user service
-        const response = await axios.get('http://localhost:8080/api/profile', {
+        const response = await axios.get(`${API_URL}/api/profile`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

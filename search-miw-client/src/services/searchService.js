@@ -1,10 +1,12 @@
 import { authAxios } from './authService';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
 export const searchService = {
   search: async (query, language = 'en') => {
     try {
       // Build the search URL
-      let url = `http://localhost:8080/api/search?query=${encodeURIComponent(query)}`;
+      let url = `${API_URL}/api/search?query=${encodeURIComponent(query)}`;
       
       // Add optional parameters if provided
       if (language) {

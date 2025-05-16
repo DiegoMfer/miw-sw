@@ -132,7 +132,7 @@ function StatsPage() {
         // Make sure the API_URL for GraphQL is correct, e.g., http://localhost:8080/api/graphql
         // The curl example uses /api/graphql, ensure API_URL points to this or adjust accordingly.
         // If API_URL is just the base (http://localhost:8080), append /api/graphql
-        const graphqlEndpoint = API_URL.endsWith('/graphql') ? API_URL : `${API_URL}/api/graphql`;
+        const graphqlEndpoint = API_URL && API_URL.endsWith('/graphql') ? API_URL : `${API_URL}/api/graphql`;
 
 
         const data = await request(graphqlEndpoint, GET_STATS_DATA, undefined, headers); // Pass headers
