@@ -64,6 +64,12 @@ docker-compose up -d
 docker-compose down
 ```
 
+To build and start all services using a specific compose file:
+
+```bash
+docker compose -f docker-compose-deploy.yml up --build
+```
+
 ### Developing Locally
 
 Each service can be run individually using Maven:

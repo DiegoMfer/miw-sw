@@ -1,0 +1,223 @@
+version: '3.8'
+
+services:
+  # Frontend Client
+  search-miw-client:
+    build:
+      context: ./search-miw-client
+      args:
+        - VITE_API_URL=http://156.35.95.52:8080 # Build-time API URL
+    container_name: search-miw-client
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://156.35.95.52:8080 # Runtime API URL (can be overridden)
+    networks:
+      - searchmiw-network
+    depends_on:
+      - gateway
+    # Add healthcheck to ensure the container is running properly
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  data-panel-client:
+    build:
+      context: ./data-panel-client
+    container_name: data-panel-client
+    ports:
+      - "3001:80"
+    environment:
+      - VITE_AGGREGATOR_API_URL=http://aggregator:8087/graphql
+    networks:
+      - searchmiw-network
+    depends_on:
+      - gateway
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+  
+  # Search Service
+  search-service:
+    build: ./search-service
+    container_name: search-service
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_APPLICATION_NAME=search-service
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=8084
+    networks:
+      - searchmiw-network
+
+  # History Service
+  history-service:
+    build: ./history-service
+    container_name: history-service
+    depends_on:
+      - mysql-db
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - MYSQL_HOST=history-db
+      - MYSQL_PORT=3306
+      - MYSQL_DB=history_db
+      - MYSQL_USER=history_user
+      - MYSQL_PASSWORD=history_password
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+      - SERVER_PORT=8085
+    ports:
+      - "8085:8085"
+    networks:
+      - searchmiw-network
+
+  # History Database
+  history-db:
+    image: mysql:8.0
+    container_name: history-db
+    environment:
+      - MYSQL_DATABASE=history_db
+      - MYSQL_USER=history_user
+      - MYSQL_PASSWORD=history_password
+      - MYSQL_ROOT_PASSWORD=root_password
+    volumes:
+      - history-db-data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - searchmiw-network
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "history_user", "--password=history_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+      
+  # User Service
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    depends_on:
+      - mysql-db
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - MYSQL_HOST=user-db
+      - MYSQL_PORT=3306
+      - MYSQL_DB=user_db
+      - MYSQL_USER=user_service
+      - MYSQL_PASSWORD=user_password
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+      - SERVER_PORT=8086
+    ports:
+      - "8086:8086"
+    networks:
+      - searchmiw-network
+
+  # User Database
+  user-db:
+    image: mysql:8.0
+    container_name: user-db
+    environment:
+      - MYSQL_DATABASE=user_db
+      - MYSQL_USER=user_service
+      - MYSQL_PASSWORD=user_password
+      - MYSQL_ROOT_PASSWORD=root_password
+    volumes:
+      - user-db-data:/var/lib/mysql
+    ports:
+      - "3308:3306"
+    networks:
+      - searchmiw-network
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "user_service", "--password=user_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Aggregator Service
+  aggregator:
+    build: ./aggregator
+    container_name: aggregator
+    depends_on:
+      - user-service
+      - history-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    ports:
+      - "8087:8087"
+    networks:
+      - searchmiw-network
+
+  # Database
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=searchmiw
+      - MYSQL_USER=searchmiw
+      - MYSQL_PASSWORD=searchmiw
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - searchmiw-network
+
+  # Auth Service
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    depends_on:
+      - user-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=8088
+      - USER_SERVICE_URL=http://user-service:8086
+    ports:
+      - "8088:8088"
+    networks:
+      - searchmiw-network
+
+  # Gateway Service
+  gateway:
+    build: ./gateway
+    container_name: gateway
+    depends_on:
+      - user-service
+      - search-service
+      - history-service
+      - auth-service
+      - aggregator 
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVICE_USER_URL=http://user-service:8086
+      - SERVICE_SEARCH_URL=http://search-service:8084
+      - SERVICE_HISTORY_URL=http://history-service:8085
+      - SERVICE_AUTH_URL=http://auth-service:8088
+      - SERVICE_AGGREGATOR_URL=http://aggregator:8087 
+      # Added CORS environment variables
+      - SPRING_WEBFLUX_CORS_ALLOWED_ORIGINS=http://localhost:3000
+      - SPRING_WEBFLUX_CORS_ALLOW_CREDENTIALS=true
+    ports:
+      - "8080:8080"
+    networks:
+      - searchmiw-network
+
+
+networks:
+  searchmiw-network:
+    driver: bridge
+
+volumes:
+  history-db-data:
+  user-db-data:
+  mysql-data:
