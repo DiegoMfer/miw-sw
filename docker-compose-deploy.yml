@@ -29,7 +29,7 @@ services:
       context: ./data-panel-client
     container_name: data-panel-client
     ports:
-      - "3001:3001"
+      - "3001:80"
     environment:
       - VITE_AGGREGATOR_API_URL=http://156.35.95.52:8080/api/graphql 
     networks:
@@ -198,25 +198,6 @@ services:
     networks:
       - searchmiw-network
 
-  # Nginx Reverse Proxy for HTTPS
-  nginx:
-    build: ./nginx
-    container_name: nginx
-    ports:
-      - "443:443"
-    # Removed port 80 exposure
-    depends_on:
-      - gateway
-    networks:
-      - searchmiw-network
-    volumes:
-      - ./nginx/certs:/etc/nginx/certs:ro
-    healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-qO-", "https://localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
 
 networks:
   searchmiw-network:
