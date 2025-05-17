@@ -61,7 +61,7 @@ services:
     build: ./history-service
     container_name: history-service
     depends_on:
-      - mysql-db
+      - history-db
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - MYSQL_HOST=history-db
@@ -104,7 +104,7 @@ services:
     build: ./user-service
     container_name: user-service
     depends_on:
-      - mysql-db
+      - user-db
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - MYSQL_HOST=user-db
@@ -156,21 +156,7 @@ services:
     networks:
       - searchmiw-network
 
-  # Database
-  mysql-db:
-    image: mysql:8.0
-    container_name: mysql
-    environment:
-      - MYSQL_ROOT_PASSWORD=rootpassword
-      - MYSQL_DATABASE=searchmiw
-      - MYSQL_USER=searchmiw
-      - MYSQL_PASSWORD=searchmiw
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql-data:/var/lib/mysql
-    networks:
-      - searchmiw-network
+
 
   # Auth Service
   auth-service:
@@ -220,4 +206,4 @@ networks:
 volumes:
   history-db-data:
   user-db-data:
-  mysql-data:
+
