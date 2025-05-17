@@ -16,13 +16,8 @@ public class CorsConfig {
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
         
-        // Allow frontend origins
-        corsConfig.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3000",   // Development for search-miw-client
-            "http://127.0.0.1:3000",   // Alternative local address
-            "http://localhost:3001",   // Development for data-panel-client
-            "https://your-production-domain.com" // Add your production domain when ready
-        ));
+        // Allow all origins
+        corsConfig.addAllowedOriginPattern("*");
         
         // Allow all common HTTP methods
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
