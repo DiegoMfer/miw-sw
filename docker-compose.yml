@@ -31,7 +31,7 @@ services:
     ports:
       - "3001:80"
     environment:
-      - VITE_AGGREGATOR_API_URL=http://aggregator:8087/graphql
+      - VITE_AGGREGATOR_API_URL=http://localhost:8080/api/graphql 
     networks:
       - searchmiw-network
     depends_on:
