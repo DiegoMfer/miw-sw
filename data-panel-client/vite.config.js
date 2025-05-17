@@ -7,5 +7,6 @@ export default defineConfig({
   server: {
     host: true,
     // port: 5173, // default, can be omitted if not customized
+    open: true, // Automatically open the app in the default browser
   },
 })
