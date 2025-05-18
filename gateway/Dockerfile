@@ -28,6 +28,9 @@ RUN addgroup --system --gid 1001 appgroup \
 # Copy JAR file from the build stage
 COPY --from=build /app/target/*.jar app.jar
 
+# Copy keystore for SSL
+COPY src/main/resources/gateway-keystore.p12 /app/gateway-keystore.p12
+
 # Switch to the non-root user
 USER appuser
 
