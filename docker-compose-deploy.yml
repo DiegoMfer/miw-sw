@@ -2,46 +2,7 @@ version: '3.8'
 
 services:
   # Frontend Client
-  search-miw-client:
-    build:
-      context: ./search-miw-client
-      args:
-        - VITE_API_URL=http://156.35.95.52:8080 # Build-time API URL
-    container_name: search-miw-client
-    ports:
-      - "3000:3000"
-    environment:
-      - VITE_API_URL=http://156.35.95.52:8080 # Runtime API URL (can be overridden)
-    networks:
-      - searchmiw-network
-    depends_on:
-      - gateway
-    # Add healthcheck to ensure the container is running properly
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
 
-  data-panel-client:
-    build:
-      context: ./data-panel-client
-    container_name: data-panel-client
-    ports:
-      - "3001:80"
-    environment:
-      - VITE_AGGREGATOR_API_URL=http://156.35.95.52:8080/api/graphql 
-    networks:
-      - searchmiw-network
-    depends_on:
-      - gateway
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3001"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
   
   # Search Service
   search-service:
