@@ -136,23 +136,3 @@ curl -X GET "http://localhost:8080/api/history/user/{userId}?page=0&size=10" \
 ```
 
 
-testuser: 
-
-{
-  "name": "testdiego12345",
-  "email": "testdiego12345@gmail.com",
-  "password": "testdiego12345"
-}
-
-{
-  "userId": 10,
-  "name": "testdiego12345",
-  "email": "testdiego12345@gmail.com",
-  "token": "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEwLCJzdWIiOiJ0ZXN0ZGllZ28xMjM0NUBnbWFpbC5jb20iLCJpYXQiOjE3NDY2MjAyOTQsImV4cCI6MTc0NjcwNjY5NH0.JtyEz9Z639PsEFP4tAjZlfh7ZuqJc1TPG6BYW0508L4",
-  "message": "Registration successful"
-}
-
-VITE_API_URL=https://156.35.95.52:8080 npm run dev
-VITE_API_URL=https://156.35.95.52:8080 VITE_AGGREGATOR_API_URL=https://156.35.95.52:8080/api/graphql npm run dev
-
-nohup bash -c 'VITE_API_URL=https://156.35.95.52:8080 VITE_AGGREGATOR_API_URL=https://156.35.95.52:8080/api/graphql npm run dev' > dev.log 2>&1 &
